@@ -14,17 +14,29 @@ public class MyServletContextListener implements ServletContextListener {
     private DiscordBot bot;
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        System.out.println("*****************************\n*****************************\n*****************************\n         Starting bot\n*****************************\n*****************************\n*****************************\n");
-        Dotenv dotenv = Dotenv.load();
-        String token = dotenv.get("DISCORD_TOKEN");
-        JDA bot = JDABuilder.createDefault(token).setActivity(Activity.playing("in the bacta pod")).enableIntents(GatewayIntent.MESSAGE_CONTENT).build();
-        bot.addEventListener(new DiscordBot());
-        sce.getServletContext().setAttribute("discordBot", bot);
+            System.out.println("*****************************\n" +
+                    "*****************************\n" +
+                    "*****************************\n" +
+                    "---------Starting bot--------\n" +
+                    "*****************************\n" +
+                    "*****************************\n" +
+                    "*****************************\n");
+            Dotenv dotenv = Dotenv.load();
+            String token = dotenv.get("DISCORD_TOKEN");
+            JDA bot = JDABuilder.createDefault(token).setActivity(Activity.playing("in the bacta pod")).enableIntents(GatewayIntent.MESSAGE_CONTENT).build();
+            bot.addEventListener(new DiscordBot());
+            sce.getServletContext().setAttribute("discordBot", bot);
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("*****************************\n*****************************\n*****************************\n     Shutting down bot\n*****************************\n*****************************\n*****************************\n");
+        System.out.println("*****************************\n" +
+                           "*****************************\n" +
+                           "*****************************\n" +
+                           "------Shutting down bot------\n" +
+                           "*****************************\n" +
+                           "*****************************\n" +
+                           "*****************************\n");
         JDA bot = (JDA) sce.getServletContext().getAttribute("discordBot");
         System.out.println(bot);
         if (bot != null) {
