@@ -25,6 +25,7 @@ public class MainServlet extends HttpServlet {
         String loginButtonClicked = request.getParameter("loginButton");
         String registerButtonClicked = request.getParameter("registerButton");
         String logoutButtonClicked = request.getParameter("logoutButton");
+        String viewMessageButtonClicked = request.getParameter("viewMessageButton");
         if (loginButtonClicked != null && loginButtonClicked.equals("true")) {
             response.sendRedirect("login");
         }
@@ -35,6 +36,9 @@ public class MainServlet extends HttpServlet {
             HttpSession session = request.getSession();
             session.invalidate();
             response.sendRedirect("main");
+        }
+        if(viewMessageButtonClicked != null && viewMessageButtonClicked.equals("true")) {
+            response.sendRedirect("viewMessages");
         }
     }
 }

@@ -16,7 +16,7 @@
     <div class="collapse navbar-collapse" id="navbarsExample05">
       <ul class="navbar-nav mr-auto">
         <li class="nav-item active">
-          <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+
         </li>
       </ul>
       <form method="post" action="main" class="form-inline my-2 my-md-0">

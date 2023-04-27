@@ -1,5 +1,6 @@
 package com.meppelink.data_access;
 
+import com.meppelink.Discord.DiscordMessage;
 import com.meppelink.User.User;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -13,8 +14,8 @@ import java.util.HashMap;
 public class DiscordDAO_MySQL implements DAO_MySQL<HashMap<String, Object>> {
     public int addDiscordUser(HashMap<String, String> discordUser) {
         int numRowsAffected = 0;
-        try(Connection connection = getConnection()) {
-            if(connection.isValid(2)) {
+        try (Connection connection = getConnection()) {
+            if (connection.isValid(2)) {
                 CallableStatement callableStatement = connection.prepareCall("{CALL sp_add_discord_user(?,?,?,?,?,?)}");
                 callableStatement.setString(1, discordUser.get("user_id"));
                 callableStatement.setString(2, discordUser.get("user_name"));
@@ -25,16 +26,17 @@ public class DiscordDAO_MySQL implements DAO_MySQL<HashMap<String, Object>> {
                 numRowsAffected = callableStatement.executeUpdate();
                 callableStatement.close();
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             System.out.println("Add discord user failed");
             System.out.println(e.getMessage());
         }
         return numRowsAffected;
     }
+
     public int addDiscordMessage(HashMap<String, String> discordMessage, ZonedDateTime zonedDateTime) {
         int numRowsAffected = 0;
-        try(Connection connection = getConnection()) {
-            if(connection.isValid(2)) {
+        try (Connection connection = getConnection()) {
+            if (connection.isValid(2)) {
                 CallableStatement callableStatement = connection.prepareCall("{CALL sp_add_discord_message(?,?,?,?,?,?,?,?,?,?)}");
                 callableStatement.setString(1, discordMessage.get("user_name"));
                 callableStatement.setString(2, discordMessage.get("user_id"));
@@ -50,23 +52,24 @@ public class DiscordDAO_MySQL implements DAO_MySQL<HashMap<String, Object>> {
                 numRowsAffected = callableStatement.executeUpdate();
                 callableStatement.close();
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             System.out.println("Add discord message failed");
             System.out.println(e.getMessage());
         }
         return numRowsAffected;
     }
+
     public int selectDiscordUserByUserID(String userID) {
         int rowCount = 0;
-        try(Connection connection = getConnection()) {
-            if(connection.isValid(2)) {
+        try (Connection connection = getConnection()) {
+            if (connection.isValid(2)) {
                 CallableStatement statement = connection.prepareCall("{CALL sp_select_discord_user_by_user_id(?, ?)}");
                 statement.setString(1, userID);
                 statement.registerOutParameter(2, Types.INTEGER);
                 statement.execute();
                 rowCount = statement.getInt(2);
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             System.out.println("Select discord user by user id failed");
             System.out.println(e.getMessage());
         }
@@ -78,4 +81,40 @@ public class DiscordDAO_MySQL implements DAO_MySQL<HashMap<String, Object>> {
 
         return userList;
     }
+
+    public ArrayList<DiscordMessage> selectAllMessages() {
+        ArrayList<DiscordMessage> discordMessages = new ArrayList<>();
+        try(Connection connection = getConnection()) {
+
+            CallableStatement cs = connection.prepareCall("{CALL sp_get_all_discord_messages()}");
+            ResultSet rs = cs.executeQuery();
+
+            while (rs.next()) {
+                String userName = rs.getString("userName");
+                String userID = rs.getString("userID");
+                String serverName = rs.getString("serverName");
+                String serverID = rs.getString("serverID");
+                String channelName = rs.getString("channelName");
+                String channelID = rs.getString("channelID");
+                String message = rs.getString("message");
+                String messageID = rs.getString("messageID");
+                String messageTime = rs.getString("messageTime");
+                String messageLink = rs.getString("messageLink");
+
+                DiscordMessage discordMessage = new DiscordMessage(userName, userID, serverName, serverID, channelName, channelID, message, messageID, messageTime, messageLink);
+                discordMessages.add(discordMessage);
+            }
+
+            rs.close();
+            cs.close();
+            connection.close();
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        return discordMessages;
+    }
+
 }
+
+
+

@@ -15,8 +15,20 @@
         <div class="collapse navbar-collapse" id="navbarsExample05">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item active">
-                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                    <% if (user != null) { %>
+                            <li class="nav-item">
+                                <form method="post" action="main" class="form-inline my-2 my-md-0">
+                                    <button type="submit" name="sendMessageButton" value="true" class="btn nav-link">Send a Message</button>
+                                </form>
+                            </li>
+                            <li class="nav-item">
+                                <form method="post" action="main" class="form-inline my-2 my-md-0">
+                                    <button type="submit" name="viewMessageButton" value="true" class="btn nav-link">View Messages</button>
+                                </form>
+                            </li>
+                    <% } %>
                 </li>
+
             </ul>
             <% if (user != null) { %>
 
@@ -34,6 +46,7 @@
                     <button type="submit" name="loginButton" value="true" class="btn btn-primary">Login</button>
                 </form>
             <% } %>
+
         </div>
     </nav>
 </head>
