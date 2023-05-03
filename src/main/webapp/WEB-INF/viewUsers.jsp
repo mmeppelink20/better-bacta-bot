@@ -1,16 +1,20 @@
 <%@ page import="com.meppelink.User.User" %>
 <%@ page import="com.meppelink.Discord.DiscordMessage" %>
-<%@ page import="java.util.ArrayList" %><%
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="com.meppelink.Discord.DiscordUser" %><%
   User user = (User) session.getAttribute("user");
-  ArrayList<DiscordMessage> messages = (ArrayList<DiscordMessage>) request.getAttribute("messages");
+  ArrayList<DiscordUser> users = (ArrayList<DiscordUser>) request.getAttribute("users");
 %>
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bacta Bot | Messages </title>
+  <title>Bacta Bot | Users </title>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <img src="discord-icon-svgrepo-com.svg" width="50px" width="50px">
-    <a class="navbar-brand" href="#">&nbsp Bacta Bot</a>
+    <div>&nbsp</div>
+    <form method="post" action="main" class="form-inline my-2 my-md-0">
+      <button type="submit" name="homeButton" value="true" class="btn nav-link" style="color: darkgrey;">Bacta Bot</button>
+    </form>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -63,30 +67,36 @@
 
 <div class="mt-50 text-center">
   <br>
-  <h3>View User Messages</h3>
+  <h3>View Discord Users</h3>
 </div>
 
 <div class="container">
   <table class="table">
     <thead>
     <tr>
-      <th scope="col">UserName</th>
-      <th scope="col">Message</th>
-      <th scope="col">Time</th>
+      <th scope="col"></th>
+      <th scope="col">User Name</th>
+      <th scope="col">User ID</th>
+      <th scope="col"></th>
     </tr>
     </thead>
-    <p> <% messages.size(); %> </p>
+    <p> <% users.size(); %> </p>
     <tbody class="table-group-divider">
-    <% for(DiscordMessage message: messages) { %>
+    <% for(DiscordUser discordUser : users) { %>
     <tr>
       <td>
-        <%= message.getUserName() %>
+        <img src="<%= discordUser.getUserAvatar() %>" alt="<%= discordUser.getUserName()%>.png" width="100px" height="100px">
       </td>
       <td>
-        <%= message.getMessage() %>
+        <%= discordUser.getUserID() %>
       </td>
       <td>
-        <%= message.getMessageTime() %>
+        <%= discordUser.getUserName() %>
+      </td>
+      <td>
+        <% if (discordUser.isBot()) { %>
+          <h4><span class="badge badge-primary">Bot</span></h4>
+        <% } %>
       </td>
     </tr>
     <% } %>

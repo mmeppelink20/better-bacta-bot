@@ -7,7 +7,10 @@
     <title>Bacta Bot | Discord</title>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <img src="discord-icon-svgrepo-com.svg" width="50px" width="50px">
-        <a class="navbar-brand" href="#">&nbsp Bacta Bot</a>
+        <div>&nbsp</div>
+        <form method="post" action="main" class="form-inline my-2 my-md-0">
+            <button type="submit" name="homeButton" value="true" class="btn nav-link" style="color: darkgrey;">Bacta Bot</button>
+        </form>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -24,6 +27,11 @@
                             <li class="nav-item">
                                 <form method="post" action="main" class="form-inline my-2 my-md-0">
                                     <button type="submit" name="viewMessageButton" value="true" class="btn nav-link">View Messages</button>
+                                </form>
+                            </li>
+                            <li class="nav-item">
+                                <form method="post" action="main" class="form-inline my-2 my-md-0">
+                                    <button type="submit" name="viewUsersButton" value="true" class="btn nav-link">View Users</button>
                                 </form>
                             </li>
                     <% } %>
@@ -46,7 +54,6 @@
                     <button type="submit" name="loginButton" value="true" class="btn btn-primary">Login</button>
                 </form>
             <% } %>
-
         </div>
     </nav>
 </head>
@@ -55,7 +62,11 @@
 
 <div class="mt-50 text-center">
     <br>
-    <h3>Join the Fun, or login to chat here!</h3>
+    <% if (user != null) { %>
+        <h3>Welcome to the Bacta Bot Discord Server Website, <%= user.getFirst_name() %>!</h3>
+    <% } else { %>
+        <h3>Welcome to the Bacta Bot Discord Server Website!</h3>
+    <% } %>
 </div>
 
 <div class="container">

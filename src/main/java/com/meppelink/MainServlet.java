@@ -26,6 +26,12 @@ public class MainServlet extends HttpServlet {
         String registerButtonClicked = request.getParameter("registerButton");
         String logoutButtonClicked = request.getParameter("logoutButton");
         String viewMessageButtonClicked = request.getParameter("viewMessageButton");
+        String viewUsersButtonClicked = request.getParameter("viewUsersButton");
+        String homeButtonClicked = request.getParameter("homeButton");
+
+        if (homeButtonClicked != null && homeButtonClicked.equals("true")) {
+            response.sendRedirect("main");
+        }
         if (loginButtonClicked != null && loginButtonClicked.equals("true")) {
             response.sendRedirect("login");
         }
@@ -39,6 +45,9 @@ public class MainServlet extends HttpServlet {
         }
         if(viewMessageButtonClicked != null && viewMessageButtonClicked.equals("true")) {
             response.sendRedirect("viewMessages");
+        }
+        if(viewUsersButtonClicked != null && viewUsersButtonClicked.equals("true")) {
+            response.sendRedirect("viewUsers");
         }
     }
 }

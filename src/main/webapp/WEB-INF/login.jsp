@@ -5,10 +5,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Discord Bot Website</title>
+  <title>Bacta Bot | Login</title>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <img src="discord-icon-svgrepo-com.svg" width="50px" width="50px">
-    <a class="navbar-brand" href="#">&nbsp Discord Bot</a>
+    <div>&nbsp</div>
+    <form method="post" action="main" class="form-inline my-2 my-md-0">
+      <button type="submit" name="homeButton" value="true" class="btn nav-link" style="color: darkgrey;">Bacta Bot</button>
+    </form>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>

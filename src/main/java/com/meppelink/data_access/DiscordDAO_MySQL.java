@@ -1,6 +1,7 @@
 package com.meppelink.data_access;
 
 import com.meppelink.Discord.DiscordMessage;
+import com.meppelink.Discord.DiscordUser;
 import com.meppelink.User.User;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -76,10 +77,30 @@ public class DiscordDAO_MySQL implements DAO_MySQL<HashMap<String, Object>> {
         return rowCount;
     }
 
-    public ArrayList<String> selectAllDiscordUsersInServer(String serverID) {
-        ArrayList<String> userList = new ArrayList<>();
+    public ArrayList<DiscordUser> selectAllDiscordUsers() {
+        ArrayList<DiscordUser> discordUser = new ArrayList<>();
 
-        return userList;
+        try (Connection connection = getConnection()) {
+            if (connection.isValid(2)) {
+                CallableStatement statement = connection.prepareCall("{CALL sp_get_all_discord_users()}");
+                ResultSet rs = statement.executeQuery();
+                while (rs.next()) {
+                    String userName = rs.getString("UserID");
+                    String userID = rs.getString("UserName");
+                    String userAvatar = rs.getString("UserAvatar");
+                    String userDiscriminator = rs.getString("UserDiscriminator");
+                    String userMention = rs.getString("UserMention");
+                    boolean isBot = rs.getBoolean("IsBot");
+                    DiscordUser user = new DiscordUser(userName, userID, userAvatar, userDiscriminator, userMention, isBot);
+                    discordUser.add(user);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Select all discord users failed");
+            System.out.println(e.getMessage());
+        }
+
+        return discordUser;
     }
 
     public ArrayList<DiscordMessage> selectAllMessages() {

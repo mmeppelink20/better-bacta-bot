@@ -7,7 +7,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bacta Bot | Messages </title>
+  <title>Bacta Bot | Send a Message</title>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <img src="discord-icon-svgrepo-com.svg" width="50px" width="50px">
     <a class="navbar-brand" href="#">&nbsp Bacta Bot</a>
@@ -27,11 +27,6 @@
         <li class="nav-item">
           <form method="post" action="main" class="form-inline my-2 my-md-0">
             <button type="submit" name="viewMessageButton" value="true" class="btn nav-link">View Messages</button>
-          </form>
-        </li>
-        <li class="nav-item">
-          <form method="post" action="main" class="form-inline my-2 my-md-0">
-            <button type="submit" name="viewUsersButton" value="true" class="btn nav-link">View Users</button>
           </form>
         </li>
         <% } %>
