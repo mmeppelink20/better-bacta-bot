@@ -12,7 +12,7 @@ Bacta Bot to reply with "pong!", and if your message contains the word "bacta", 
 
 In order to use this program with the web frontent, you will need to first download Apache Tomcat, and an IDE of your choice;
 This particular program was created in Intellij. Import the project into your IDE and then select Apache Tomcat as a run configuration. 
-This should allow you to start the program.
+This should allow you to start the program. Or if you'd like to expedite this entire process, you can go directly to the Azure hosted website here: https://matthew-final-project.azurewebsites.net/ 
 
 # How to use
 
