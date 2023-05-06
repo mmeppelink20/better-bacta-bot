@@ -42,7 +42,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Add a user</title>
+  <title>Bacta Bot | Regisiter</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
   <link href='https://fonts.googleapis.com/css?family=Roboto:500,900,100,300,700,400' rel='stylesheet' type='text/css'>
@@ -50,10 +50,8 @@
 </head>
 <body class="bg-light">
 <header>
-  <title>Bacta Bot | Register</title>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <img src="discord-icon-svgrepo-com.svg" width="50px" width="50px">
-    <div>&nbsp</div>
+    <img src="discord-icon-svgrepo-com.svg" alt="discordIcon" height="50" width="50">
     <form method="post" action="main" class="form-inline my-2 my-md-0">
       <button type="submit" name="homeButton" value="true" class="btn nav-link" style="color: darkgrey;">Bacta Bot</button>
     </form>
@@ -64,8 +62,19 @@
     <div class="collapse navbar-collapse" id="navbarsExample05">
       <ul class="navbar-nav mr-auto">
         <li class="nav-item active">
-          <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+            <% if (user != null) { %>
+        <li class="nav-item">
+          <form method="post" action="main" class="form-inline my-2 my-md-0">
+            <button type="submit" name="viewMessageButton" value="true" class="btn nav-link">View Messages</button>
+          </form>
         </li>
+        <li class="nav-item">
+          <form method="post" action="main" class="form-inline my-2 my-md-0">
+            <button type="submit" name="viewUsersButton" value="true" class="btn nav-link">View Users</button>
+          </form>
+        </li>
+        <% } %>
+
       </ul>
       <% if (user != null) { %>
 

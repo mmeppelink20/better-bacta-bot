@@ -9,8 +9,10 @@
 <head>
   <title>Bacta Bot | Messages </title>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <img src="discord-icon-svgrepo-com.svg" width="50px" width="50px">
-    <a class="navbar-brand" href="#">&nbsp Bacta Bot</a>
+    <img src="discord-icon-svgrepo-com.svg" alt="discordIcon" height="50" width="50">
+    <form method="post" action="main" class="form-inline my-2 my-md-0">
+      <button type="submit" name="homeButton" value="true" class="btn nav-link" style="color: darkgrey;">Bacta Bot</button>
+    </form>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -19,24 +21,17 @@
       <ul class="navbar-nav mr-auto">
         <li class="nav-item active">
             <% if (user != null) { %>
-        <li class="nav-item">
-          <form method="post" action="main" class="form-inline my-2 my-md-0">
-            <button type="submit" name="sendMessageButton" value="true" class="btn nav-link">Send a Message</button>
-          </form>
-        </li>
-        <li class="nav-item">
-          <form method="post" action="main" class="form-inline my-2 my-md-0">
-            <button type="submit" name="viewMessageButton" value="true" class="btn nav-link">View Messages</button>
-          </form>
-        </li>
-        <li class="nav-item">
-          <form method="post" action="main" class="form-inline my-2 my-md-0">
-            <button type="submit" name="viewUsersButton" value="true" class="btn nav-link">View Users</button>
-          </form>
-        </li>
-        <% } %>
-        </li>
-
+            <li class="nav-item">
+              <form method="post" action="main" class="form-inline my-2 my-md-0">
+                <button type="submit" name="viewMessageButton" value="true" class="btn nav-link">View Messages</button>
+              </form>
+            </li>
+            <li class="nav-item">
+              <form method="post" action="main" class="form-inline my-2 my-md-0">
+                <button type="submit" name="viewUsersButton" value="true" class="btn nav-link">View Users</button>
+              </form>
+            </li>
+            <% } %>
       </ul>
       <% if (user != null) { %>
 
@@ -75,7 +70,6 @@
       <th scope="col">Time</th>
     </tr>
     </thead>
-    <p> <% messages.size(); %> </p>
     <tbody class="table-group-divider">
     <% for(DiscordMessage message: messages) { %>
     <tr>
@@ -105,7 +99,9 @@
     server: '1095791760619348120', // test server
     channel: '1095791761433051148' // #general
   })
+
 </script>
+
 <% }%>
 </body>
 

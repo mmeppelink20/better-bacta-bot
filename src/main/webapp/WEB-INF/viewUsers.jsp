@@ -10,8 +10,7 @@
 <head>
   <title>Bacta Bot | Users </title>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <img src="discord-icon-svgrepo-com.svg" width="50px" width="50px">
-    <div>&nbsp</div>
+    <img src="discord-icon-svgrepo-com.svg" alt="discordIcon" height="50" width="50">
     <form method="post" action="main" class="form-inline my-2 my-md-0">
       <button type="submit" name="homeButton" value="true" class="btn nav-link" style="color: darkgrey;">Bacta Bot</button>
     </form>
@@ -25,11 +24,6 @@
             <% if (user != null) { %>
         <li class="nav-item">
           <form method="post" action="main" class="form-inline my-2 my-md-0">
-            <button type="submit" name="sendMessageButton" value="true" class="btn nav-link">Send a Message</button>
-          </form>
-        </li>
-        <li class="nav-item">
-          <form method="post" action="main" class="form-inline my-2 my-md-0">
             <button type="submit" name="viewMessageButton" value="true" class="btn nav-link">View Messages</button>
           </form>
         </li>
@@ -39,7 +33,6 @@
           </form>
         </li>
         <% } %>
-        </li>
 
       </ul>
       <% if (user != null) { %>
@@ -80,12 +73,11 @@
       <th scope="col"></th>
     </tr>
     </thead>
-    <p> <% users.size(); %> </p>
     <tbody class="table-group-divider">
     <% for(DiscordUser discordUser : users) { %>
     <tr>
       <td>
-        <img src="<%= discordUser.getUserAvatar() %>" alt="<%= discordUser.getUserName()%>.png" width="100px" height="100px">
+        <img src="<%= discordUser.getUserAvatar() %>" alt="<%= discordUser.getUserName()%>" width="100" height="100">
       </td>
       <td>
         <%= discordUser.getUserID() %>

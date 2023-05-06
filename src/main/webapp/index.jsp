@@ -6,8 +6,7 @@
 <head>
     <title>Bacta Bot | Discord</title>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <img src="discord-icon-svgrepo-com.svg" width="50px" width="50px">
-        <div>&nbsp</div>
+        <img src="discord-icon-svgrepo-com.svg" alt="discordIcon" height="50" width="50">
         <form method="post" action="main" class="form-inline my-2 my-md-0">
             <button type="submit" name="homeButton" value="true" class="btn nav-link" style="color: darkgrey;">Bacta Bot</button>
         </form>
@@ -21,11 +20,6 @@
                     <% if (user != null) { %>
                             <li class="nav-item">
                                 <form method="post" action="main" class="form-inline my-2 my-md-0">
-                                    <button type="submit" name="sendMessageButton" value="true" class="btn nav-link">Send a Message</button>
-                                </form>
-                            </li>
-                            <li class="nav-item">
-                                <form method="post" action="main" class="form-inline my-2 my-md-0">
                                     <button type="submit" name="viewMessageButton" value="true" class="btn nav-link">View Messages</button>
                                 </form>
                             </li>
@@ -35,7 +29,6 @@
                                 </form>
                             </li>
                     <% } %>
-                </li>
 
             </ul>
             <% if (user != null) { %>
