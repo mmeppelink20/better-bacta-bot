@@ -19,6 +19,8 @@ This should allow you to start the program. Or if you'd like to expedite this en
 The website does not have much functionality for non-logged in users, so you will need to create an accout and login.
 Once you have done so, you will have access to 3 main features: Viewing the messages that Bacta Bot has read into its database, Viewing Discord users that
 Bacta Bot has added to its database, and the ability to chat on the website through [WidgetBot](https://widgetbot.io/). You can certainly chat from the
-website, but I'd encourage you to join the Discord server directly, which you can do from the website, and chat directly from the Discord client/website.
+website, but I'd encourage you to join the Discord server directly, which you can do from the website, and chat directly from Discord's client/website. 
+The ability to view discord messages and view discord users is restricted to only those who are logged in, no special permissions are needed other than 
+needing to be logged in.
 
 thank you for your interest in Bacta Bot!
