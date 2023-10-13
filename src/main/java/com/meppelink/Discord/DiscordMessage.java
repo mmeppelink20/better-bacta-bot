@@ -1,67 +1,44 @@
 package com.meppelink.Discord;
 
+import java.time.Instant;
+
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.Channel;
+
 public class DiscordMessage {
     private String userName;
-    private String userId;
-    private String serverName;
-    private String serverId;
-    private String channelName;
-    private String channelId;
     private String message;
-    private String messageId;
-    private String messageTime;
-    private String messageLink;
+    private Instant messageTime;
+    private Guild guild;
+    private Channel channel;
 
-    public DiscordMessage(String userName, String userId, String serverName, String serverId, String channelName, String channelId, String message, String messageId, String messageTime, String messageLink) {
+
+    public DiscordMessage(String userName, String message, Instant messageTime, Guild guild, Channel channel) {
         this.userName = userName;
-        this.userId = userId;
-        this.serverName = serverName;
-        this.serverId = serverId;
-        this.channelName = channelName;
-        this.channelId = channelId;
         this.message = message;
-        this.messageId = messageId;
         this.messageTime = messageTime;
-        this.messageLink = messageLink;
+        this.guild = guild;
+        this.channel = channel;
     }
 
+    public Guild getGuild() {
+        return guild;
+    }
+
+    public Channel getChannel() {
+        return channel;
+    }
+    
     public String getUserName() {
         return userName;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public String getServerName() {
-        return serverName;
-    }
-
-    public String getServerId() {
-        return serverId;
-    }
-
-    public String getChannelName() {
-        return channelName;
-    }
-
-    public String getChannelId() {
-        return channelId;
     }
 
     public String getMessage() {
         return message;
     }
 
-    public String getMessageId() {
-        return messageId;
-    }
-
-    public String getMessageTime() {
+    public Instant getMessageTime() {
         return messageTime;
     }
 
-    public String getMessageLink() {
-        return messageLink;
-    }
 }
