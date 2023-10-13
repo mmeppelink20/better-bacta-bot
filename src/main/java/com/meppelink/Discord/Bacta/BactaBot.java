@@ -33,8 +33,6 @@ public class BactaBot extends ListenerAdapter {
                 .addEventListeners(this)
                 .build();
 
-        // JDA bot = JDABuilder.createDefault(token).setActivity(Activity.playing("in the bacta pod"))
-        //         .enableIntents(GatewayIntent.MESSAGE_CONTENT).build();
         bot.upsertCommand("send-message", "Send a message from Bacta Bot").setGuildOnly(true).queue();
         bot.upsertCommand("ping", "Pong!").setGuildOnly(true).queue();
         bot.upsertCommand("display-messages", "Display messages stored inside Bacta  Bot.").setGuildOnly(true).queue();
@@ -70,27 +68,6 @@ public class BactaBot extends ListenerAdapter {
             event.getJDA().shutdown();
             System.out.println("\n\nShutting down...\n\n");
         }
-
-    }
-
-
-    private void commands(MessageReceivedEvent event) {
-        if (event.getMessage().getContentRaw().equals("/ping")) {
-            event.getChannel().sendMessage("Pong!").queue();
-        }
-
-        if (event.getMessage().getContentRaw().equals("/shutdown")) {
-            event.getChannel().sendMessage("Shutting down...").queue();
-            event.getJDA().shutdown();
-            System.out.println("\n\nShutting down...\n\n");
-        }
-
-        if (event.getMessage().getContentRaw().equals("/printMessages")) {
-            event.getChannel().sendMessage("Printing Messages").queue();
-
-            
-        }
-
 
     }
 
@@ -143,13 +120,5 @@ public class BactaBot extends ListenerAdapter {
         guild.getTextChannelById(channel.getId()).sendMessage(message).queue();
     }
 
-    // public void summarizeMessages(String message, Guild guild, Channel channel) {
-    //     String messageString = "";
-
-    //     // for (DiscordMessage discordMessage : messages) {
-    //     // messageString += "\n" + discordMessage.getMessage();
-    //     // }
-
-    //     guild.getTextChannelById(channel.getId()).sendMessage(messageString).queue();
-    // }
 }
+
