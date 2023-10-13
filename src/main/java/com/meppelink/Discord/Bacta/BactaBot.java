@@ -1,11 +1,9 @@
 package com.meppelink.Discord.Bacta;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.meppelink.Discord.DiscordMessage;
 
@@ -15,22 +13,66 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.Channel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
-import okhttp3.internal.ws.RealWebSocket.Message;
+
 
 public class BactaBot extends ListenerAdapter {
 
-    private Queue<HashMap<Channel, DiscordMessage>> messages = new LinkedList<>();
+    private Queue<DiscordMessage> messages = new LinkedList<>();
 
     BactaBot() {
         Dotenv dotenv = Dotenv.load();
         String token = dotenv.get("DISCORD_TOKEN");
-        JDA bot = JDABuilder.createDefault(token).setActivity(Activity.playing("in the bacta pod"))
-                .enableIntents(GatewayIntent.MESSAGE_CONTENT).build();
-        bot.addEventListener(this);
+        JDABuilder jdaBuilder = JDABuilder.createDefault(token);
+        JDA bot = jdaBuilder
+                .enableIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MESSAGES)
+                .setActivity(Activity.playing("In The Bacta Pod"))
+                .addEventListeners(this)
+                .build();
+
+        // JDA bot = JDABuilder.createDefault(token).setActivity(Activity.playing("in the bacta pod"))
+        //         .enableIntents(GatewayIntent.MESSAGE_CONTENT).build();
+        bot.upsertCommand("send-message", "Send a message from Bacta Bot").setGuildOnly(true).queue();
+        bot.upsertCommand("ping", "Pong!").setGuildOnly(true).queue();
+        bot.upsertCommand("display-messages", "Display messages stored inside Bacta  Bot.").setGuildOnly(true).queue();
+        bot.upsertCommand("shutdown", "Shut down Bacta Bot.").setGuildOnly(true).queue();
+        
     }
+
+    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
+        if (event.getName().equals("send-message")) {
+            event.reply("Sending message...").queue();
+            sendAMessage(event.getOption("message").getAsString(), event.getGuild(), event.getChannel());
+        }
+
+        if (event.getName().equals("display-messages")) {
+            event.reply("Displaying messages...").queue();
+            String messageString = "";
+
+            for (DiscordMessage message : messages) {
+                if(message.getGuild() == event.getGuild() && message.getChannel() == event.getChannel()) { 
+                    messageString += "\n" + message.getMessage();
+                }
+            }
+
+            event.getChannel().sendMessage(messageString).queue();
+        }
+
+        if (event.getName().equals("ping")) {
+            event.reply("Pong!").queue();
+        }
+
+        if(event.getName().equals("shutdown")) {
+            event.reply("Shutting down...").queue();
+            event.getJDA().shutdown();
+            System.out.println("\n\nShutting down...\n\n");
+        }
+
+    }
+
 
     private void commands(MessageReceivedEvent event) {
         if (event.getMessage().getContentRaw().equals("/ping")) {
@@ -46,19 +88,9 @@ public class BactaBot extends ListenerAdapter {
         if (event.getMessage().getContentRaw().equals("/printMessages")) {
             event.getChannel().sendMessage("Printing Messages").queue();
 
-            String messageString = "";
-
-            for (HashMap<Channel, DiscordMessage> message : messages) {
-                for (Channel channel : message.keySet()) {
-                    if(channel.equals(event.getChannel()))
-                    messageString += "\n" + message.get(channel).getMessage();
-                }
-            }
-
-            event.getChannel().sendMessage(messageString).queue();
+            
         }
 
-        
 
     }
 
@@ -70,29 +102,28 @@ public class BactaBot extends ListenerAdapter {
 
         commands(event);
         testing(event);
-        
-        if(event.getMessage().getContentRaw().startsWith("/")) {
+
+        if (event.getMessage().getContentRaw().startsWith("/")) {
             return;
         }
 
-        String messageString = 
-            "   NAME: " + event.getAuthor().getName() + 
-            "\nMESSAGE: " + event.getMessage().getContentRaw() + 
-            "\n   TIME: " + event.getMessage().getTimeCreated().toInstant() +
-            "\n  GUILD: " + event.getGuild().getName() +
-            "\n CHANNEL: " + event.getChannel().getName();
+        String messageString = "   NAME: " + event.getAuthor().getName() +
+                "\nMESSAGE: " + event.getMessage().getContentRaw() +
+                "\n   TIME: " + event.getMessage().getTimeCreated().toInstant() +
+                "\n  GUILD: " + event.getGuild().getName() +
+                "\n CHANNEL: " + event.getChannel().getName();
         event.getChannel().sendMessage("```" + messageString + "```").queue();
         try {
+
             DiscordMessage message = new DiscordMessage(
                     event.getAuthor().getName(),
                     event.getMessage().getContentRaw(),
                     event.getMessage().getTimeCreated().toInstant(),
                     event.getGuild(),
-                    event.getChannel()
-                );
-            HashMap<Channel, DiscordMessage> messageMap = new HashMap<>();
-            messageMap.put(event.getChannel(), message);
-            messages.add(messageMap);
+                    event.getChannel());
+
+            messages.add(message);
+
         } catch (Exception e) {
             System.out.println("\n\nError adding message to queue\n\n" + e);
         }
@@ -101,25 +132,24 @@ public class BactaBot extends ListenerAdapter {
 
     private void testing(MessageReceivedEvent event) {
         System.out.println(
-            "NAME: " + event.getAuthor().getName() + 
-            "\n MESSAGE: " + event.getMessage().toString() +
-            "\nTIME: " + event.getMessage().getTimeCreated().toInstant() +
-            "\nGUILD: " + event.getGuild().getName() +
-            "\nCHANNEL: " + event.getChannel().getName()
-        );
+                "NAME: " + event.getAuthor().getName() +
+                        "\n MESSAGE: " + event.getMessage().toString() +
+                        "\nTIME: " + event.getMessage().getTimeCreated().toInstant() +
+                        "\nGUILD: " + event.getGuild().getName() +
+                        "\nCHANNEL: " + event.getChannel().getName());
     }
 
     public void sendAMessage(String message, Guild guild, Channel channel) {
         guild.getTextChannelById(channel.getId()).sendMessage(message).queue();
     }
 
-    public void summarizeMessages(String message, Guild guild, Channel channel) {
-        String messageString = "";
+    // public void summarizeMessages(String message, Guild guild, Channel channel) {
+    //     String messageString = "";
 
-        // for (DiscordMessage discordMessage : messages) {
-        //     messageString += "\n" + discordMessage.getMessage();
-        // }
+    //     // for (DiscordMessage discordMessage : messages) {
+    //     // messageString += "\n" + discordMessage.getMessage();
+    //     // }
 
-        guild.getTextChannelById(channel.getId()).sendMessage(messageString).queue();
-    }
+    //     guild.getTextChannelById(channel.getId()).sendMessage(messageString).queue();
+    // }
 }
