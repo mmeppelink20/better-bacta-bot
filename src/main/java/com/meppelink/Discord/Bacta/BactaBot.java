@@ -76,8 +76,7 @@ public class BactaBot extends ListenerAdapter {
         if (event.getGuild() == null || event.getAuthor().isBot()) {
             return;
         }
-
-        commands(event);
+        
         testing(event);
 
         if (event.getMessage().getContentRaw().startsWith("/")) {
