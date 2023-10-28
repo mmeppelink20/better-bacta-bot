@@ -41,4 +41,8 @@ public class DiscordMessage {
         return messageTime;
     }
 
+    public String toString() {
+        return userName + ": " + message;
+    }
+
 }
