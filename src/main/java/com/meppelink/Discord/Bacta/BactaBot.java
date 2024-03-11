@@ -1,8 +1,6 @@
 package com.meppelink.Discord.Bacta;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -10,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.meppelink.ChatGPT.ChatGPT;
 import com.meppelink.Discord.DiscordMessage;
+import com.meppelink.Discord.GuildMessageList;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import net.dv8tion.jda.api.JDA;
@@ -27,13 +26,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class BactaBot extends ListenerAdapter {                                                                                                                                                                            
 
-    private Queue<DiscordMessage> messages = new LinkedList<>();
-    
-    // @DONE refator this to use a hashmap of queues, with the key being the channel id.
-    private HashMap<String, Queue<DiscordMessage>> messagesPerChannel = new HashMap<>();
-    
-    // @TODO make this a datastructure to keep track of char count per channel id.
-    private HashMap<String, Integer> charCountPerChannel = new HashMap<>();
+    private GuildMessageList guildMessageList = new GuildMessageList();
 
     // Constructs the bot and sets up the commands
     BactaBot() { 
@@ -50,72 +43,115 @@ public class BactaBot extends ListenerAdapter {
         bot.upsertCommand("summarize", "Send a message to be summarized").setGuildOnly(true).queue();
         bot.upsertCommand("send-message", "Send a message to the channel.").addOptions(option1).setGuildOnly(true).queue();
         bot.upsertCommand("ping", "Pong!").setGuildOnly(true).queue();
-        bot.upsertCommand("display-messages", "Display messages stored inside Bacta  Bot.").setGuildOnly(true).queue();
         bot.upsertCommand("shutdown", "Shut down Bacta Bot.").setGuildOnly(true).queue();
         bot.upsertCommand("clear-messages", "clear the messages in Bacta Bot").setGuildOnly(true).queue();
+        bot.upsertCommand("question", "ask bacta bot a question").setGuildOnly(true).queue();
+        bot.upsertCommand("bacta", "bacta, or no bacta...").setGuildOnly(true).queue();
     }
 
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
 
         switch(event.getName()) {
             case "send-message":
-                sendAMessage(event.getOption("message").getAsString(), event.getGuild(), event.getChannel());
-                break;
+                sendAMessage(event, event.getOption("message").getAsString(), event.getGuild(), event.getChannel());
+            break;
                 
             case "clear-messages":
-                messages.clear();
-                event.reply("Messages cleared.").queue();
-                break;
-
-            case "display-messages":
-                event.reply("Displaying messages...").queue();
-                String messageString = "";
-
-                if(messages.isEmpty()) {
-                    event.getChannel().sendMessage("No messages stored.").queue();
-                    return;
-                }
-
-                for (DiscordMessage message : messages) {
-                    if(message.getGuild() == event.getGuild() && message.getChannel() == event.getChannel()) { 
-                        messageString += "\n" + message.getUserName() + ": " + message.getMessage();
+                if (event.getUser().getId().equals("197944571844362240")) {
+                    try {
+                        if(guildMessageList.getMessagesInChannel(event.getChannel().getId()).isEmpty()) {
+                            event.reply("There are no messages.").queue();
+                            return;
+                        }
+                    } catch(Exception e) {
+                        event.reply("No messages stored.").queue();
+                        return;
                     }
+                    guildMessageList.clearMessages(event);
+                    event.reply("Messages cleared.").queue();
+                } else {
+                    event.reply("You don't have permission to do that.").queue();
                 }
-
-                event.getChannel().sendMessage(messageString).queue();
-
-                break;
+            break;
 
             case "ping":
                 event.reply("Pong!").queue();
-                break;
+                //display the message queue in the console(for debugging purposes).
+                try{
+                    if(guildMessageList.getMessagesInChannel(event.getChannel().getId()).isEmpty()) {
+                        System.out.println("DEBUG: No messages stored.");
+                    } else {
+                        System.out.println("DEBUG: Displaying message queue...");
+                    }
+                    guildMessageList.getMessagesInChannel(event.getChannel().getId()).forEach(s -> System.out.println(s));
+                } catch(Exception e) {
+                    System.out.println("DEBUG: No messages stored.");
+                }
+
+            break;
 
             case "shutdown":
-                event.reply("Shutting down...").queue();
-                event.getJDA().shutdown();
-                System.out.println("\n\nShutting down...\n\n");
-                break;
+                if (event.getUser().getId().equals("197944571844362240")) {
+                    event.reply("Shutting down...").queue();
+                    event.getJDA().shutdown();
+                    System.out.println("\n\nShutting down...\n\n");
+                } else {
+                    event.reply("You don't have permission to do that.").queue();
+                }
+                
+            break;
 
             case "summarize":
-                sendAMessage("Summarizing...", event.getGuild(), event.getChannel());
-            
-                ExecutorService executorService = Executors.newFixedThreadPool(1);
+                try {
+                    if(guildMessageList.getMessagesInChannel(event.getChannel().getId()).isEmpty()) {
+                        event.reply("There isn't a conversation to summarize...").queue();
+                        return;
+                    }
+                } catch (Exception e) {
+                    event.reply("There isn't a conversation to summarize...").queue();
+                    return;
+                }
+
+                event.reply("Summarizing...").queue();
+
+                ExecutorService summarizerThread = Executors.newFixedThreadPool(3);
                 
                 try {
-                    executorService.submit(() -> {
-                        System.out.println(messages);
-                        sendAMessage(ChatGPT.summarizeMessages(messages), event.getGuild(), event.getChannel());
+                    summarizerThread.submit(() -> {
+                        System.out.println(guildMessageList.getMessagesInChannel(event.getChannel().getId()));
+                        sendAMessage(ChatGPT.summarizeMessages(guildMessageList.getMessagesInChannel(event.getChannel().getId())), event.getGuild(), event.getChannel());
                     });
                 } finally {
-                    executorService.shutdown();
+                    summarizerThread.shutdown();
                 }
-                break;
+            break;
+            
+            case "question":
+                event.reply("I'm sorry, I can't do that yet.").queue();
+                // ExecutorService questinThread = Executors.newFixedThreadPool(3);
+                // try {
+                //     questinThread.submit(() -> {
+                //         System.out.println("DEBUG: ");
+                //         System.out.println(guildMessageList.getMessagesInChannel(event.getChannel().getId()));
+                //         sendAMessage(ChatGPT.summarizeMessages(guildMessageList.getMessagesInChannel(event.getChannel().getId())), event.getGuild(), event.getChannel());
+                //     });
+                // } finally {
+                //     questinThread.shutdown();
+                // }
+            break;
 
-            default: 
-                break;
+            case "bacta":
+                Random rand = new Random();
+                int n = rand.nextInt(2);
+                System.out.println(n);
+                event.reply(n % 2 == 0 ? "bacta" : "no bacta").queue();
+            break;
+
+            default:
+                event.reply("I don't know that command.").queue();
+            break;
                 
         }
-
     }
 
     // recieves message events and adds them to the queue, and splits them into multiple messages if they are too long.
@@ -129,6 +165,25 @@ public class BactaBot extends ListenerAdapter {
             return;
         }
 
+        // if the guild isn't in the guildMessageList, add it
+        if(!guildMessageList.guildInMap(event.getGuild().getId())) {
+            guildMessageList.addGuildToMap(event.getGuild().getId());
+            System.out.println("\nDEBUG: *** Added guild to map: " + event.getGuild().getId() + " ***\n");
+        }
+
+        // add the channel name to the guild map's hashset if it doesn't exist
+        if(!guildMessageList.getGuildChannelMap().get(event.getGuild().getId()).contains(event.getChannel().getId())) {
+            guildMessageList.addChannelToGuild(event.getGuild().getId(), event.getChannel().getId());
+            System.out.println("\nDEBUG: *** Added channel to guild: " + event.getChannel().getId() + " ***\n");
+        }
+
+        // add the channel to the channelMessages hashmap if it doesn't exist
+        if(guildMessageList.getMessagesInChannel(event.getChannel().getId()) == null) {
+            guildMessageList.addChannelToMap(event.getChannel().getId());
+            System.out.println("\nDEBUG: *** Added channel to channelMessages: " + event.getChannel().getId() + " ***\n");
+        }
+        
+        // create the DiscordMessage object to be added to the queue
         try {
             DiscordMessage message = new DiscordMessage(
                     event.getAuthor().getName(),
@@ -136,67 +191,73 @@ public class BactaBot extends ListenerAdapter {
                     event.getMessage().getTimeCreated().toInstant(),
                     event.getGuild(),
                     event.getChannel());
-                    
-            // add the channel id to the hashmap if it doesn't exist, otherwise add the message length to the total char count
-            if(charCountPerChannel.containsKey(event.getChannel().getId())) {
-                charCountPerChannel.put(event.getChannel().getId(), charCountPerChannel.get(event.getChannel().getId()) + message.toString().length());
-            } else {
-                charCountPerChannel.put(event.getChannel().getId(), message.toString().length());
-            }
 
-
-            System.out.println(eventToString(event));
+            
             
             // split message into 2 messages if it is too long
-            if(message.toString().length() > 1800) {
+            int maxSingleMessageLength = 1000;
+            if(message.toString().length() > maxSingleMessageLength) {
                 String messageString2 = "";
                 String messageString3 = "";
+                
+                // split message into 2, where its size is half of the original message
+                messageString2 = event.getMessage().getContentRaw().substring(0, event.getMessage().getContentRaw().length() / 2);
+                messageString3 = event.getMessage().getContentRaw().substring(event.getMessage().getContentRaw().length() / 2, event.getMessage().getContentRaw().length());
 
-                messageString2 = message.toString().substring(0, 1800);
-                messageString3 = message.toString().substring(1800, message.toString().length());
+                DiscordMessage discordMessage2 = new DiscordMessage(event.getAuthor().getName(), "[1/2] " + messageString2, event.getMessage().getTimeCreated().toInstant(), event.getGuild(), event.getChannel());
+                DiscordMessage discordMessage3 = new DiscordMessage(event.getAuthor().getName(), "[2/2] " + messageString3, event.getMessage().getTimeCreated().toInstant(), event.getGuild(), event.getChannel());
 
-                DiscordMessage discordMessage2 = createDiscordMessage(event, messageString2);
-                DiscordMessage discordMessage3 = createDiscordMessage(event, messageString3);
+                System.out.println("DEBUG: \n" + discordMessage2.toString().length() + "\n");
+                System.out.println("DEBUG: \n" + discordMessage3.toString().length() + "\n");
 
-                event.getChannel().sendMessage("```" + messageString2 + "```").queue();
-                event.getChannel().sendMessage("```" + messageString3 + "```").queue();
 
-                messages.add(discordMessage2);
-                messages.add(discordMessage3);
-                // @DONE add these to the hash queue, and not the original message
-                messagesPerChannel.put(event.getChannel().getId(), messages);
-                // add the total char count of both the split messages to the charCountPerChannel
-                charCountPerChannel.put(event.getChannel().getId(), charCountPerChannel.get(event.getChannel().getId()) + messageString2.length() + messageString3.length());
+                // LEFT OFF HERE: this isn't really working as it's supposed to
+
+                // add the channel id to the hashmap if it doesn't exist, otherwise add the message length to the total char count
+                if(guildMessageList.getCharCountPerChannel(event.getChannel().getId()) == null) {
+                    guildMessageList.setCharCountPerChannel(event.getChannel().getId(), 0);
+                } else {
+                    guildMessageList.addCharsToCharCount(event.getChannel().getId(), discordMessage2.toString().length());
+                    guildMessageList.addCharsToCharCount(event.getChannel().getId(), discordMessage3.toString().length());
+                }
+                
+                guildMessageList.addMessageToChannel(event.getChannel().getId(), discordMessage2);
+                guildMessageList.addMessageToChannel(event.getChannel().getId(), discordMessage3);
 
             } else  {
-                
+                // add the message and
+                if(guildMessageList.getCharCountPerChannel(event.getChannel().getId()) == null) {
+                    guildMessageList.setCharCountPerChannel(event.getChannel().getId(), 0);
+                } else {
+                    guildMessageList.addCharsToCharCount(event.getChannel().getId(), message.toString().length());
+                }
+                guildMessageList.addMessageToChannel(event.getChannel().getId(), message);
+                guildMessageList.addCharsToCharCount(event.getChannel().getId(), message.toString().length());
             }
-            
-            // make a check to see if the char count is over the limit, and if so, remove messages until it is under the limit
-            // @TODO make this a function
-
-
         } catch (Exception e) {
             System.out.println("\n\nError adding message to queue\n\n" + e);
         } finally {
+            System.out.println("DEBUG: \n" + eventToString(event) + "\n");
             // remove messages until the total char count is under 7000
-            removeMessagesUntilUnderLimit(event);
+            if(guildMessageList.getCharCountPerChannel(event.getChannel().getId()) > 7000) {
+                removeMessagesUntilUnderLimit(event);
+            }
         }
-        
-
     }
 
     // event object to string
-    private String eventToString(MessageReceivedEvent event) {
-        String formattedEvent = "";
+    public String eventToString(MessageReceivedEvent event) {
+        // Format the time using the desired pattern
+        String formattedTime = DiscordMessage.formatTime(event.getMessage().getTimeCreated().toInstant());
 
-        formattedEvent = "    NAME: " + event.getAuthor().getName() +
+        // Format the event data
+        String formattedEvent = "    NAME: " + event.getAuthor().getName() +
                 "\n MESSAGE: " + event.getMessage().getContentRaw() +
-                "\n    TIME: " + event.getMessage().getTimeCreated().toInstant() +
-                "\n   GUILD: " + event.getGuild().getName() +
+                "\n    TIME: " + formattedTime +
+                "\n   GUILD: " + event.getGuild().getId() +
                 "\n CHANNEL: " + event.getChannel().getName() +
-                "\n STICKER: " + event.getMessage().getStickers().toString() +
-                "\n CHARCNT: " + charCountPerChannel.get(event.getChannel().getId()) +
+                // "\n STICKER: " + event.getMessage().getStickers().toString() +
+                "\n CHARCNT: " + guildMessageList.getCharCountPerChannel(event.getChannel().getId()) +
                 "\n Channel: " + event.getChannel().getId();
 
         return formattedEvent;
@@ -204,26 +265,21 @@ public class BactaBot extends ListenerAdapter {
 
     // removes messages in the queue until the total char count is under 7000
     private void removeMessagesUntilUnderLimit(MessageReceivedEvent event) {
-        while(charCountPerChannel.get(event.getChannel().getId()) > 7000) { // remove messages until the total char count is under 3000
-                DiscordMessage smg = messages.remove();
-                System.out.println(smg.toString().length());
-                charCountPerChannel.put(event.getChannel().getId(), charCountPerChannel.get(event.getChannel().getId()) - smg.toString().length());
-            }
-    }
-
-    // creates a discord message object
-    private DiscordMessage createDiscordMessage(MessageReceivedEvent event, String messageString) {
-        return new DiscordMessage(
-                event.getAuthor().getName(),
-                messageString,
-                event.getMessage().getTimeCreated().toInstant(),
-                event.getGuild(),
-                event.getChannel());
+        while(guildMessageList.getCharCountPerChannel(event.getChannel().getId()) > 7000) {
+            guildMessageList.setCharCountPerChannel(event.getChannel().getId(), guildMessageList.getCharCountPerChannel(event.getChannel().getId()) - guildMessageList.getMessagesInChannel(event.getChannel().getId()).peek().toString().length());
+            guildMessageList.removeMessageFromChannel(event);
+        }
     }
 
     // sends a message to the channel
     public void sendAMessage(String message, Guild guild, Channel channel) {
         guild.getTextChannelById(channel.getId()).sendMessage(message).queue();
+    }
+
+    // sends a mesaage to the channel, with event object for Logging.
+    public void sendAMessage(@NotNull SlashCommandInteractionEvent event, String message, Guild guild, Channel channel) {
+        guild.getTextChannelById(channel.getId()).sendMessage(message).queue();
+        System.out.println("DEBUG: \n" + event.getUser() + " sent: " + event.getOption("message").getAsString());
     }
 
     // sends a sticker to the channel

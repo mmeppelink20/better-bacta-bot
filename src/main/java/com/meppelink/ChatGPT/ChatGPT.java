@@ -13,7 +13,9 @@ public class ChatGPT {
     public static String summarizeMessages(Queue<DiscordMessage> messages) {
         String error = "";
         try {
-            return chatGPT(escapeSpecialCharactersForJSON(messages.toString() + "can you summarize this conversation in under 1000 characters, also do your best to identify and seperate seperate conversations? end your response with %^#!)("));
+            return chatGPT(escapeSpecialCharactersForJSON(messages.toString() +
+             "just summarize this conversation in under 1000 characters. end your response with %^#!)(")); //             "can you summarize this conversation in under 1000 characters, also do your best to identify and seperate seperate conversations? end your response with %^#!)("));
+
         } catch (Exception e) {
             error = e.toString();
         }
@@ -60,20 +62,28 @@ public class ChatGPT {
     }
 
     public static String escapeSpecialCharactersForJSON(String input) {
-        input = input.replace("\\", "\\\\");     // Escape backslashes
-        input = input.replace("\"", "\\\"");    // Escape double quotes
-        input = input.replace("\n", "\\n");     // Escape newline characters
-        input = input.replace("\r", "\\r");     // Escape carriage return
-        input = input.replace("\t", "\\t");     // Escape tab character
-        input = input.replace("\b", "\\b");     // Escape backspace
-        input = input.replace("\f", "\\f");     // Escape form feed
-        input = input.replace("…", "\\u2026");  // Escape ellipsis character
-        input = input.replace("“", "\\u201C");  // Escape left double quotation mark
-        input = input.replace("”", "\\u201D");  // Escape right double quotation mark
-        input = input.replace("–", "\\u2013");  // Escape en dash
-        input = input.replace("—", "\\u2014");  // Escape em dash
-        // Replace other special characters as needed
-        return input;
+        StringBuilder output = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            if (c >= '\u0000' && c <= '\u001F') {  // Control characters
+                switch (c) {
+                    case '\b': output.append("\\b"); break;  // Escape backspace
+                    case '\f': output.append("\\f"); break;  // Escape form feed
+                    case '\n': output.append("\\n"); break;  // Escape newline
+                    case '\r': output.append("\\r"); break;  // Escape carriage return
+                    case '\t': output.append("\\t"); break;  // Escape tab
+                    default: output.append("\\u").append(String.format("%04x", (int) c));  // Escape as unicode
+                }
+            } else if (c >= '\u0080') { // Non-ASCII characters
+                output.append("\\u").append(String.format("%04x", (int) c));  // Escape as unicode
+            } else {
+                switch (c) {
+                    case '\\': output.append("\\\\"); break;  // Escape backslash
+                    case '\"': output.append("\\\""); break;  // Escape double quote
+                    default: output.append(c);  // Leave other characters as is
+                }
+            }
+        }
+        return output.toString();
     }
 
     public static String extractContentFromResponse(String response) {
