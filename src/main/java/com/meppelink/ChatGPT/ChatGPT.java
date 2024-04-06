@@ -22,6 +22,8 @@ public class ChatGPT {
         return "Error:" + error;
     }
 
+    
+
     public static String chatGPT(String message) {
         String url = "https://api.openai.com/v1/chat/completions";
         Dotenv dotenv = Dotenv.load();
@@ -91,4 +93,5 @@ public class ChatGPT {
         int endMarker = response.indexOf("%^#!)(", startMarker); // Marker for where the content ends.
         return response.substring(startMarker, endMarker); // Returns the substring containing only the response.
     }
+
 }

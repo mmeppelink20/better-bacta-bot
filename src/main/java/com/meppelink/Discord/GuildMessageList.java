@@ -2,7 +2,6 @@ package com.meppelink.Discord;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Queue;
 
 import org.jetbrains.annotations.NotNull;
@@ -14,52 +13,50 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 public class GuildMessageList  {
 
     private HashMap<String, HashSet<String>> guildChannelMap;
-    private HashMap<String, Queue<DiscordMessage>> channelMessages;
-    private HashMap<String, Integer> charCountPerChannel;
+    private HashMap<String, ChannelMessages> channelMessages;
+    // private HashMap<String, Integer> charCountPerChannel;
     
 
     // default constructor
     public GuildMessageList() {
         guildChannelMap = new HashMap<String, HashSet<String>>();
-        channelMessages = new HashMap<String, Queue<DiscordMessage>>();
-        charCountPerChannel = new HashMap<String, Integer>();
+        channelMessages = new HashMap<String, ChannelMessages>();
     }
 
     // parametized constructor
-    public GuildMessageList(HashMap<String, HashSet<String>> guildChannelMap, HashMap<String, Queue<DiscordMessage>> channelMessages, HashMap<String, Integer> charCountPerChannel) {
+    public GuildMessageList(HashMap<String, HashSet<String>> guildChannelMap, HashMap<String, ChannelMessages> channelMessages, HashMap<String, Integer> charCountPerChannel) {
         this.guildChannelMap = guildChannelMap;
         this.channelMessages = channelMessages;
-        this.charCountPerChannel = charCountPerChannel;
     }
 
     // get the channel messages
     public Queue<DiscordMessage> getChannelMessages(String channelID) {
-        return channelMessages.get(channelID);
+        return channelMessages.get(channelID).getChannelMessages();
     }
 
     // get the char count per channel
     public Integer getCharCountPerChannel(String channelID) {
-        return charCountPerChannel.get(channelID);
+        return channelMessages.get(channelID).getCharCount();
     }
 
     // set the char count per channel
     public void setCharCountPerChannel(String channelID, Integer charCount) {
-        charCountPerChannel.put(channelID, charCount);
+        channelMessages.get(channelID).setCharCount(charCount);
     }
 
     // add characters to the char count
     public void addCharsToCharCount(String channelID, Integer charCount) {
-        charCountPerChannel.put(channelID, charCountPerChannel.get(channelID) + charCount);
+        channelMessages.get(channelID).addCharsToCharCount(charCount);
     }
 
     // add a message to the channel
     public void addMessageToChannel(String channelID, DiscordMessage message) {
-        channelMessages.get(channelID).add(message);
+        channelMessages.get(channelID).addMessageToChannel(message);
 
         // print the queue; for debugging.
-        // System.out.println("DEBUG:");
-        // System.out.println("*** ADDED MESSAGE TO THE QUEUE ***: ");
-        // channelMessages.get(channelID).forEach(s -> System.out.println(s));
+        System.out.println("DEBUG:");
+        System.out.println("*** ADDED MESSAGE TO THE QUEUE ***: ");
+        // channelMessages.get(channelID).getChannelMessages().forEach(msg -> System.out.println(msg));
     }
 
     // add a guild to the guild map
@@ -87,26 +84,30 @@ public class GuildMessageList  {
         return guildChannelMap;
     }
 
+    // clears the messages in a channel
     public void clearMessages(@NotNull SlashCommandInteractionEvent event) {
         String channelID = event.getChannel().getId();
-        channelMessages.get(channelID).clear();
-        charCountPerChannel.put(channelID, 0);
+        channelMessages.get(channelID).removeAllMessages();
     }
 
     // get the messages in a channel
     public Queue<DiscordMessage> getMessagesInChannel(String channelID) {
-        return channelMessages.get(channelID);
+        return channelMessages.get(channelID).getChannelMessages();
     }
 
     // remove a message from a channel
     public void removeMessageFromChannel(MessageReceivedEvent event) {
         String channelID = event.getChannel().getId();
-        channelMessages.get(channelID).remove();
+        channelMessages.get(channelID).removeMessageFromChannel();
     }
 
     // add a channel to the channel map
     public void addChannelToMap(String channelID) {
-        channelMessages.put(channelID, new LinkedList<DiscordMessage>());
+        channelMessages.put(channelID, new ChannelMessages());
+    }
+
+    public boolean channelInMap(String id) {
+        return channelMessages.containsKey(id);
     }
 
 
