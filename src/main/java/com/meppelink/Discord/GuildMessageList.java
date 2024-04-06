@@ -60,7 +60,6 @@ public class GuildMessageList  {
         // System.out.println("DEBUG:");
         // System.out.println("*** ADDED MESSAGE TO THE QUEUE ***: ");
         // channelMessages.get(channelID).forEach(s -> System.out.println(s));
-        
     }
 
     // add a guild to the guild map
