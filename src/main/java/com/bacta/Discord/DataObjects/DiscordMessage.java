@@ -1,4 +1,4 @@
-package com.bacta.Discord;
+package com.bacta.Discord.DataObjects;
 
 import java.time.Instant;
 import java.time.ZoneId;

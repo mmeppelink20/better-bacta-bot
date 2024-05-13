@@ -8,8 +8,8 @@ import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 
 import com.bacta.ChatGPT.ChatGPT;
-import com.bacta.Discord.DiscordMessage;
-import com.bacta.Discord.GuildMessageList;
+import com.bacta.Discord.DataObjects.DiscordMessage;
+import com.bacta.Discord.DataObjects.GuildMessageList;
 
 import io.github.cdimascio.dotenv.Dotenv;
 

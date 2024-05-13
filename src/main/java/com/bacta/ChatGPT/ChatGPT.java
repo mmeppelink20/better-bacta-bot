@@ -9,7 +9,7 @@ import java.util.Queue;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.bacta.Discord.DiscordMessage;
+import com.bacta.Discord.DataObjects.DiscordMessage;
 
 public class ChatGPT {
 
