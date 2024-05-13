@@ -1,4 +1,4 @@
-package com.meppelink.Discord;
+package com.bacta.Discord;
 
 import java.time.Instant;
 import java.time.ZoneId;

@@ -1,4 +1,4 @@
-package com.meppelink.ChatGPT;
+package com.bacta.ChatGPT;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -9,7 +9,7 @@ import java.util.Queue;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.meppelink.Discord.DiscordMessage;
+import com.bacta.Discord.DiscordMessage;
 
 public class ChatGPT {
 
