@@ -41,18 +41,21 @@ public class BactaBot extends ListenerAdapter {
                 .addEventListeners(this)
                 .build();
         OptionData option1 = new OptionData(OptionType.STRING, "message", "The message to send.").setRequired(true);
-        //OptionData messageCount = new OptionData(OptionType.INTEGER, "message-count", "The number of messages to summarize").setRequired(true);
+        OptionData option2 = new OptionData(OptionType.STRING, "question", "The question to ask bacta bot.").setRequired(true);
+        OptionData option3 = new OptionData(OptionType.STRING, "messagestats", "The message to count characters, spaces, and words.").setRequired(true);
+
         bot.upsertCommand("summarize", "Send a message to be summarized").setGuildOnly(true).queue();
         bot.upsertCommand("send-message", "Send a message to the channel.").addOptions(option1).setGuildOnly(true).queue();
         bot.upsertCommand("ping", "Pong!").setGuildOnly(true).queue();
         bot.upsertCommand("shutdown", "Shut down Bacta Bot.").setGuildOnly(true).queue();
         bot.upsertCommand("clear-messages", "clear the messages in Bacta Bot").setGuildOnly(true).queue();
-        bot.upsertCommand("question", "ask bacta bot a question").setGuildOnly(true).queue();
+        bot.upsertCommand("question", "ask bacta bot a question").addOptions(option2).setGuildOnly(true).queue();
         bot.upsertCommand("bacta", "bacta, or no bacta...").setGuildOnly(true).queue();
+        bot.upsertCommand("vanish", "vanish...").setGuildOnly(true).queue();
+        bot.upsertCommand("charactercounter", "supply a message to see how many spaces, characters, and words it has").addOptions(option3).setGuildOnly(true).queue();
     }
 
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-
         switch(event.getName()) {
             case "send-message":
                 sendAMessage(event, event.getOption("message").getAsString(), event.getGuild(), event.getChannel());
@@ -122,7 +125,7 @@ public class BactaBot extends ListenerAdapter {
                 try {
                     summarizerThread.submit(() -> {
                         System.out.println(guildMessageList.getMessagesInChannel(event.getChannel().getId()));
-                        sendAMessage(ChatGPT.summarizeMessages(guildMessageList.getMessagesInChannel(event.getChannel().getId())), event.getGuild(), event.getChannel());
+                        sendAMessage(ChatGPT.summarizeMessages(guildMessageList.getMessagesInChannel(event.getChannel().getId()), "gpt-4"), event.getGuild(), event.getChannel());
                     });
                 } finally {
                     summarizerThread.shutdown();
@@ -130,27 +133,37 @@ public class BactaBot extends ListenerAdapter {
             break;
             
             case "question":
-                event.reply("I'm sorry, I can't do that yet.").queue();
-                //@TODO
-                // ExecutorService questinThread = Executors.newFixedThreadPool(3);
-                // try {
-                //     questinThread.submit(() -> {
-                //         System.out.println("DEBUG: ");
-                //         System.out.println(guildMessageList.getMessagesInChannel(event.getChannel().getId()));
-                //         sendAMessage(ChatGPT.summarizeMessages(guildMessageList.getMessagesInChannel(event.getChannel().getId())), event.getGuild(), event.getChannel());
-                //     });
-                // } finally {
-                //     questinThread.shutdown();
-                // }
+            
+                ExecutorService questionThread = Executors.newFixedThreadPool(3);
+                try {
+                    questionThread.submit(() -> {
+                        System.out.println("DEBUG: " + event.getOption("question").getAsString());
+                    
+                        event.reply("<@" + event.getUser().getId() + "> asked: " + event.getOption("question").getAsString()).queue();
+                        sendAMessage(ChatGPT.askQuestion(event.getOption("question").getAsString(), "gpt-4"), event.getGuild(), event.getChannel());
+                    });
+                } finally {
+                    questionThread.shutdown();
+                }
+            break;
+
+            case "vanish":
+
             break;
 
             case "bacta":
                 Random rand = new Random();
-                int n = rand.nextInt(2);
+                int n = rand.nextInt(10);
                 System.out.println(n);
-                event.reply(n % 2 == 0 ? "bacta" : "no bacta").queue();
+                event.reply(n <= 2 ? "bacta" : "no bacta").queue();
             break;
 
+            case "charactercounter":
+                event.reply(event.getOption("messagestats") + "\n" + "Character count: " + event.getOption("message").getAsString().length() + "\n" +
+                            "Word count: " + event.getOption("message").getAsString().split("\\s+").length + "\n" +
+                            "Space count: " + event.getOption("message").getAsString().split(" ").length).queue();
+            break;
+            
             default:
                 event.reply("I don't know that command.").queue();
             break;
@@ -161,13 +174,20 @@ public class BactaBot extends ListenerAdapter {
     // recieves message events and adds them to the queue, and splits them into multiple messages if they are too long.
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        if (event.getGuild() == null || event.getAuthor().isBot()) {
-            return;
-        }
-
-        if (event.getMessage().getContentRaw().startsWith("/")) {
-            return;
-        }
+        // if the message is mentioning user <@1095791282531610655> then reply to the message with the @mention
+        // if(event.getMessage().getContentRaw().contains("<@109579128253161065>")) {
+        //     ExecutorService questionThread = Executors.newFixedThreadPool(3);
+        //         try {
+        //             questionThread.submit(() -> {
+        //                 // reply the the message with the @ here
+        //                 sendAMessage("<@" + event.getAuthor().getId() + ">", event.getGuild(), event.getChannel());
+                        
+        //             });
+        //         } finally {
+        //             questionThread.shutdown();
+        //         }
+        //     sendAMessage("You mentioned me!", event.getGuild(), event.getChannel());
+        // }
 
         // if the guild isn't in the guildMessageList, add it
         if(!guildMessageList.guildInMap(event.getGuild().getId())) {
@@ -181,26 +201,12 @@ public class BactaBot extends ListenerAdapter {
             System.out.println("DEBUG: *** Added channel to guild: " + event.getChannel().getId() + " ***");
         }
 
-        // // add the channel to the channelMessages hashmap if it doesn't exist
-        // try {
-        //     guildMessageList.addChannelToMap(event.getChannel().getId());
-        //     System.out.println(guildMessageList.getMessagesInChannel(event.getChannel().getId()));
-        // } catch (Exception e) {
-        //     System.out.println("\n\nError adding channel to map\n\n" + e);
-        // }
-        
-
-        try {
-            // add the channel to the channelMessages hashmap if it doesn't exist
-            if(!guildMessageList.channelInMap(event.getChannel().getId())) {
-                guildMessageList.addChannelToMap(event.getChannel().getId());
-                System.out.println(guildMessageList.getMessagesInChannel(event.getChannel().getId()));
-            }
-        } catch (Exception e) {
-            System.out.println("\n\nError adding channel to map\n\n" + e);
+        // if the channel isn't in the channelMessageList, add it
+        if(!guildMessageList.channelInMap(event.getChannel().getId())) {
+            guildMessageList.addChannelToMap(event.getChannel().getId());
+            System.out.println("DEBUG: *** Added channel to guild channel map: " + event.getChannel().getId() + " ***");
         }
-        
-        
+
         // create the DiscordMessage object to be added to the queue
         try {
             DiscordMessage message = new DiscordMessage(
@@ -210,9 +216,6 @@ public class BactaBot extends ListenerAdapter {
                     event.getGuild(),
                     event.getChannel());
 
-    
-            //@TODO FIX THIS, BRUH
-
             // split message into 2 messages if it is too long
             int maxSingleMessageLength = 1000;
             if(message.toString().length() > maxSingleMessageLength) {
@@ -221,10 +224,6 @@ public class BactaBot extends ListenerAdapter {
                 
                 DiscordMessage discordMessage1 = splitMessages.get(0);
                 DiscordMessage discordmessage2 = splitMessages.get(1);
-
-                // if(guildMessageList.getCharCountPerChannel(event.getChannel().getId()) == null) {
-                //     guildMessageList.setCharCountPerChannel(event.getChannel().getId(), 0);
-                // }
                 
                 guildMessageList.addMessageToChannel(event.getChannel().getId(), discordMessage1);
                 guildMessageList.addMessageToChannel(event.getChannel().getId(), discordmessage2);
@@ -245,12 +244,9 @@ public class BactaBot extends ListenerAdapter {
                 System.out.println("DEBUG: \n" + guildMessageList.getCharCountPerChannel(event.getChannel().getId()) + "\n");
             }
             
-            // remove messages until the total char count is under 7000
-            
         }
     }
 
-    // @TODO refactor this to split a message into a specified quantity of messages
     // splits a message into 2 messages
     private ArrayList<DiscordMessage> splitMessage(MessageReceivedEvent event) {
         ArrayList<DiscordMessage> splitMessages = new ArrayList<DiscordMessage>();
@@ -274,7 +270,7 @@ public class BactaBot extends ListenerAdapter {
         return splitMessages;
     }
 
-    // event object to string
+    // event object toString
     public String eventToString(MessageReceivedEvent event) {
         // Format the time using the desired pattern
         String formattedTime = DiscordMessage.formatTime(event.getMessage().getTimeCreated().toInstant());
@@ -295,7 +291,6 @@ public class BactaBot extends ListenerAdapter {
     // removes messages in the queue until the total char count is under 7000
     private void removeMessagesUntilUnderLimit(MessageReceivedEvent event, int charLimit) {
         while(guildMessageList.getCharCountPerChannel(event.getChannel().getId()) > charLimit) {
-            // @TODO implement a removecharsfromcharcount method
             guildMessageList.removeMessageFromChannel(event);
         }
     }
