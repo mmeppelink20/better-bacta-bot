@@ -1,4 +1,4 @@
-package com.meppelink.Discord;
+package com.bacta.Discord;
 
 import java.util.HashMap;
 import java.util.HashSet;

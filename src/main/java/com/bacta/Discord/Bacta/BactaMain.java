@@ -1,4 +1,4 @@
-package com.meppelink.Discord.Bacta;
+package com.bacta.Discord.Bacta;
 
 public class BactaMain {
     @SuppressWarnings("unused")

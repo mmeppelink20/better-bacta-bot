@@ -1,4 +1,4 @@
-package com.meppelink.Discord.Bacta;
+package com.bacta.Discord.Bacta;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -7,9 +7,9 @@ import java.util.concurrent.Executors;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.meppelink.ChatGPT.ChatGPT;
-import com.meppelink.Discord.DiscordMessage;
-import com.meppelink.Discord.GuildMessageList;
+import com.bacta.ChatGPT.ChatGPT;
+import com.bacta.Discord.DiscordMessage;
+import com.bacta.Discord.GuildMessageList;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
