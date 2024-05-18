@@ -1,6 +1,7 @@
 package com.bacta.Discord.Bacta;
 
 import java.util.ArrayList;
+
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -8,6 +9,7 @@ import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 
 import com.bacta.ChatGPT.ChatGPT;
+import com.bacta.Discord.Bacta.EventHandlers.ButtonEventHandler;
 import com.bacta.Discord.DataObjects.DiscordMessage;
 import com.bacta.Discord.DataObjects.GuildMessageList;
 
@@ -21,8 +23,7 @@ import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 
@@ -30,30 +31,38 @@ public class BactaBot extends ListenerAdapter {
 
     private GuildMessageList guildMessageList = new GuildMessageList();
 
+    private final String questionGPTModel = "gpt-4o";
+    private final String summarizeGPTModel = "gpt-4o";
+
+    private ExecutorService summarizerThread;
+    private ExecutorService questionThread;
+
+    private ArrayList<String> devIDList = new ArrayList<String>();
+
+    private Button btnDM;
+    private Button btnShare;
+
+
     // Constructs the bot and sets up the commands
     BactaBot() { 
         Dotenv dotenv = Dotenv.load();
         String token = dotenv.get("DISCORD_TOKEN");
         JDABuilder jdaBuilder = JDABuilder.createDefault(token);
         JDA bot = jdaBuilder
-                .enableIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MESSAGES)
+                .enableIntents(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
                 .setActivity(Activity.playing("In The Bacta Pod"))
-                .addEventListeners(this)
+                .addEventListeners(this, new ButtonEventHandler())
                 .build();
-        OptionData option1 = new OptionData(OptionType.STRING, "message", "The message to send.").setRequired(true);
-        OptionData option2 = new OptionData(OptionType.STRING, "question", "The question to ask bacta bot.").setRequired(true);
-        OptionData option3 = new OptionData(OptionType.STRING, "messagestats", "The message to count characters, spaces, and words.").setRequired(true);
 
-        bot.upsertCommand("summarize", "Send a message to be summarized").setGuildOnly(true).queue();
-        bot.upsertCommand("send-message", "Send a message to the channel.").addOptions(option1).setGuildOnly(true).queue();
-        bot.upsertCommand("ping", "Pong!").setGuildOnly(true).queue();
-        bot.upsertCommand("shutdown", "Shut down Bacta Bot.").setGuildOnly(true).queue();
-        bot.upsertCommand("clear-messages", "clear the messages in Bacta Bot").setGuildOnly(true).queue();
-        bot.upsertCommand("question", "ask bacta bot a question").addOptions(option2).setGuildOnly(true).queue();
-        bot.upsertCommand("bacta", "bacta, or no bacta...").setGuildOnly(true).queue();
-        bot.upsertCommand("vanish", "vanish...").setGuildOnly(true).queue();
-        bot.upsertCommand("charactercounter", "supply a message to see how many spaces, characters, and words it has").addOptions(option3).setGuildOnly(true).queue();
+        @SuppressWarnings("unused")
+        CommandSetup commandSetup = new CommandSetup(bot);
+
+        summarizerThread = Executors.newFixedThreadPool(10);
+        questionThread = Executors.newFixedThreadPool(10);
+
+        devIDList.add("197944571844362240");
     }
+
 
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         switch(event.getName()) {
@@ -98,6 +107,8 @@ public class BactaBot extends ListenerAdapter {
 
             case "shutdown":
                 if (event.getUser().getId().equals("197944571844362240")) {
+                    summarizerThread.shutdown();
+                    questionThread.shutdown();
                     event.reply("Shutting down...").queue();
                     event.getJDA().shutdown();
                     System.out.println("\n\nShutting down...\n\n");
@@ -106,10 +117,13 @@ public class BactaBot extends ListenerAdapter {
                 }
                 
             break;
-
+            
             case "summarize":
+                // print out the user who requested the summary
+                System.out.println("\nDEBUG: " + event.getUser() + " requested a summary.\n");
                 try {
-                    if(guildMessageList.getMessagesInChannel(event.getChannel().getId()).isEmpty()) {
+                    // Check if there are messages to summarize
+                    if (guildMessageList.getMessagesInChannel(event.getChannel().getId()).isEmpty()) {
                         event.reply("There isn't a conversation to summarize...").queue();
                         return;
                     }
@@ -117,38 +131,53 @@ public class BactaBot extends ListenerAdapter {
                     event.reply("There isn't a conversation to summarize...").queue();
                     return;
                 }
-
-                event.reply("Summarizing...").queue();
-
-                ExecutorService summarizerThread = Executors.newFixedThreadPool(3);
-                
-                try {
+            
+                // Disable buttons initially
+                btnDM = Button.primary("btnDM", "DM").asDisabled();
+                btnShare = Button.success("btnShare", "Share").asDisabled();
+            
+                // Send initial ephemeral reply with interaction buttons
+                event.reply("").setEphemeral(true).addActionRow(btnDM, btnShare).queue(reply -> {
                     summarizerThread.submit(() -> {
-                        System.out.println(guildMessageList.getMessagesInChannel(event.getChannel().getId()));
-                        sendAMessage(ChatGPT.summarizeMessages(guildMessageList.getMessagesInChannel(event.getChannel().getId()), "gpt-4"), event.getGuild(), event.getChannel());
+                        // Perform summarization
+                        String summary = ChatGPT.summarizeMessages(guildMessageList.getMessagesInChannel(event.getChannel().getId()), summarizeGPTModel);
+            
+                        // Enable buttons and edit the original message with the summary
+                        btnDM = Button.primary("btnDM", "DM").asEnabled();
+                        btnShare = Button.success("btnShare", "Share").asEnabled();
+                        event.getHook().editOriginal(summary).setActionRow(btnDM, btnShare).queue();
+                        
                     });
-                } finally {
-                    summarizerThread.shutdown();
-                }
+                });
+
+                
             break;
+
             
             case "question":
-            
-                ExecutorService questionThread = Executors.newFixedThreadPool(3);
-                try {
+                // print out the user who requested the question
+                System.out.println("\nDEBUG: " + event.getUser() + " requested a question.\n");
+
+                btnDM = Button.primary("btnDM", "DM").asDisabled();
+                btnShare = Button.success("btnShare", "Share").asDisabled();
+
+                // Send initial ephemeral reply with an interaction buttons
+                event.reply("").setEphemeral(true).addActionRow(btnDM, btnShare).queue(reply -> {
                     questionThread.submit(() -> {
-                        System.out.println("DEBUG: " + event.getOption("question").getAsString());
-                    
-                        event.reply("<@" + event.getUser().getId() + "> asked: " + event.getOption("question").getAsString()).queue();
-                        sendAMessage(ChatGPT.askQuestion(event.getOption("question").getAsString(), "gpt-4"), event.getGuild(), event.getChannel());
+                        // Perform question answering
+                        String answer = ChatGPT.askQuestion(event.getOption("question").getAsString(), questionGPTModel);
+            
+                        // Enable buttons and edit the original message with the answer
+                        btnDM = Button.primary("btnDM", "DM").asEnabled();
+                        btnShare = Button.success("btnShare", "Share").asEnabled();
+                        event.getHook().editOriginal(answer).setActionRow(btnDM, btnShare).queue();
                     });
-                } finally {
-                    questionThread.shutdown();
-                }
+                });
+
             break;
 
             case "vanish":
-
+            
             break;
 
             case "bacta":
@@ -158,10 +187,13 @@ public class BactaBot extends ListenerAdapter {
                 event.reply(n <= 2 ? "bacta" : "no bacta").queue();
             break;
 
+            // takes user input and calculates the total number of characters, words, and spaces in the message
             case "charactercounter":
-                event.reply(event.getOption("messagestats") + "\n" + "Character count: " + event.getOption("message").getAsString().length() + "\n" +
-                            "Word count: " + event.getOption("message").getAsString().split("\\s+").length + "\n" +
-                            "Space count: " + event.getOption("message").getAsString().split(" ").length).queue();
+                String message = event.getOption("message").getAsString();
+                int charCount = message.length();
+                int wordCount = message.split("\\s+").length;
+                int spaceCount = message.length() - message.replace(" ", "").length();
+                event.reply("Character count: " + charCount + "\nWord count: " + wordCount + "\nSpace count: " + spaceCount).queue();
             break;
             
             default:
@@ -188,6 +220,16 @@ public class BactaBot extends ListenerAdapter {
         //         }
         //     sendAMessage("You mentioned me!", event.getGuild(), event.getChannel());
         // }
+
+        // if the message is from the bot, ignore it
+        if(event.getAuthor().isBot()) {
+            return;
+        }
+
+        // if message occurs in a DM, ignore it
+        if(event.getGuild() == null) {
+            return;
+        }
 
         // if the guild isn't in the guildMessageList, add it
         if(!guildMessageList.guildInMap(event.getGuild().getId())) {

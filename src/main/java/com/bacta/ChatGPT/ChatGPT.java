@@ -16,25 +16,47 @@ public class ChatGPT {
     public static String summarizeMessages(Queue<DiscordMessage> messages, String model) {
         String response = "";
 
+        // Build the prompt
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("You are reading a conversation from a chat platform. Summarize the conversation, highlighting the main topics discussed, key points, and any important decisions or conclusions. Do not mention that this is from a chat platform in your summary. Structure your response as follows:\n");
+        promptBuilder.append("*conversation length: [put conversation length here]*");
+        promptBuilder.append("1. **Main topics:**");
+        promptBuilder.append("    - A bulleted list of each main topic discussed. Try to keep this list short, but also don't sacrifice anything.");
+        promptBuilder.append("2. **Overall tone:**");
+        promptBuilder.append("    - A description of the overall tone of the conversation.");
+        promptBuilder.append("3. **TL;DR summary:**");
+        promptBuilder.append("    - A one-sentence TL;DR summary at the end.");
+
+
+        promptBuilder.append("Here is the conversation:\n");
+        promptBuilder.append("```\n");
+        promptBuilder.append(escapeSpecialCharactersForJSON(messages.toString()));
+        promptBuilder.append("\n```");
+
+        String prompt = promptBuilder.toString();
+
         try {
-            response = chatGPT("your name is Bacta Bot. just summarize this Discord conversation in under 1000 characters" + escapeSpecialCharactersForJSON(messages.toString()), model); 
+            response = chatGPT(prompt, model);
         } catch (Exception e) {
             response = "There was an error: " + e.toString();
         }
 
         return response;
     }
-
     public static String askQuestion(String question, String model) {
         String response = "";
-
+        String prompt = "Answer the following question in under 1000 characters:\n" +
+                        "- **Question:**\n" +
+                        "    " + escapeSpecialCharactersForJSON(question) + "\n" +
+                        "- **Answer:**\n" +
+                        "    Your answer goes here.";
+    
         try {
-            response = chatGPT("your name is Bacta Bot pretend you aren't an ai and that you're an FX-7 medical droid in the Star Wars universe during the Clone Wars, answer this question: " + escapeSpecialCharactersForJSON(question) , model);
-            System.out.println("DEBUG: \nQUESTION: " + question + "RESPONSE: " + response);
+            response = chatGPT(prompt, model);
         } catch (Exception e) {
             response = "There was an error: " + e.toString();
         }
-
+    
         return response;
     }
 
@@ -42,7 +64,7 @@ public class ChatGPT {
         String url = "https://api.openai.com/v1/chat/completions";
         Dotenv dotenv = Dotenv.load();
         String apiKey = dotenv.get("CHATGPT_TOKEN");
-    
+
         try {
             // Create the HTTP POST request
             URL obj = new URL(url);
@@ -50,69 +72,94 @@ public class ChatGPT {
             con.setRequestMethod("POST");
             con.setRequestProperty("Authorization", "Bearer " + apiKey);
             con.setRequestProperty("Content-Type", "application/json");
-    
+
             // Set the request body
-            String body = "{\"model\": \"" + model + "\", \"messages\": [{\"role\": \"user\", \"content\": \"" + message + "\"}]}";
+            JSONObject requestBody = new JSONObject();
+            requestBody.put("model", model);
+
+            JSONArray messagesArray = new JSONArray();
+            JSONObject userMessage = new JSONObject();
+            userMessage.put("role", "user");
+            userMessage.put("content", message);
+            messagesArray.put(userMessage);
+
+            requestBody.put("messages", messagesArray);
+
+            String body = requestBody.toString();
+
             con.setDoOutput(true);
-            OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
-            writer.write(body);
-            writer.flush();
-            writer.close();
-    
-            // Get the response
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+            try (OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream())) {
+                writer.write(body);
+                writer.flush();
             }
-            in.close();
-            
-            System.out.println(response.toString());
-    
+
+            // Get the response
+            StringBuilder response = new StringBuilder();
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+            }
+
             // Parse JSON response
             JSONObject jsonResponse = new JSONObject(response.toString());
             JSONArray choices = jsonResponse.getJSONArray("choices");
             JSONObject firstChoice = choices.getJSONObject(0);
             String chatResponse = firstChoice.getJSONObject("message").getString("content");
-    
+
             // Return the extracted chat response
             return chatResponse;
-    
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            return "MalformedURLException: " + e.getMessage();
+        } catch (ProtocolException e) {
+            e.printStackTrace();
+            return "ProtocolException: " + e.getMessage();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            return "IOException: " + e.getMessage();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Exception: " + e.getMessage();
         }
     }
 
     public static String escapeSpecialCharactersForJSON(String input) {
         StringBuilder output = new StringBuilder();
         for (char c : input.toCharArray()) {
-            if (c >= '\u0000' && c <= '\u001F') {  // Control characters
-                switch (c) {
-                    case '\b': output.append("\\b"); break;  // Escape backspace
-                    case '\f': output.append("\\f"); break;  // Escape form feed
-                    case '\n': output.append("\\n"); break;  // Escape newline
-                    case '\r': output.append("\\r"); break;  // Escape carriage return
-                    case '\t': output.append("\\t"); break;  // Escape tab
-                    default: output.append("\\u").append(String.format("%04x", (int) c));  // Escape as unicode
-                }
-            } else if (c >= '\u0080') { // Non-ASCII characters
-                output.append("\\u").append(String.format("%04x", (int) c));  // Escape as unicode
-            } else {
-                switch (c) {
-                    case '\\': output.append("\\\\"); break;  // Escape backslash
-                    case '\"': output.append("\\\""); break;  // Escape double quote
-                    default: output.append(c);  // Leave other characters as is
-                }
+            switch (c) {
+                case '\\':
+                    output.append("\\\\"); // Escape backslash
+                    break;
+                case '\"':
+                    output.append("\\\""); // Escape double quote
+                    break;
+                case '\b':
+                    output.append("\\b"); // Escape backspace
+                    break;
+                case '\f':
+                    output.append("\\f"); // Escape form feed
+                    break;
+                case '\n':
+                    output.append("\\n"); // Escape newline
+                    break;
+                case '\r':
+                    output.append("\\r"); // Escape carriage return
+                    break;
+                case '\t':
+                    output.append("\\t"); // Escape tab
+                    break;
+                default:
+                    if (c < ' ' || (c >= '\u0080' && c <= '\u00ff')) {
+                        output.append("\\u").append(String.format("%04x", (int) c)); // Escape as unicode
+                    } else {
+                        output.append(c); // Leave other characters as is
+                    }
+                    break;
             }
         }
         return output.toString();
     }
-
-    public static String extractContentFromResponse(String response) {
-        int startMarker = response.indexOf("content") + 11; // Marker for where the content starts.
-        int endMarker = response.indexOf("%^#!)(", startMarker); // Marker for where the content ends.
-        return response.substring(startMarker, endMarker); // Returns the substring containing only the response.
-    }
-
 }
