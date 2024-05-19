@@ -42,6 +42,8 @@ public class BactaBot extends ListenerAdapter {
     private Button btnDM;
     private Button btnShare;
 
+    private int charLimit = 25000;
+
 
     // Constructs the bot and sets up the commands
     BactaBot() { 
@@ -67,7 +69,15 @@ public class BactaBot extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         switch(event.getName()) {
             case "send-message":
-                sendAMessage(event, event.getOption("message").getAsString(), event.getGuild(), event.getChannel());
+                if(devIDList.contains(event.getUser().getId())) {
+                    //silently acknowledge the command and send the message
+
+                    sendAMessage(event, event.getOption("message").getAsString(), event.getGuild(), event.getChannel());
+
+                    return;
+                }
+                // reply with an ephemeral message if the user doesn't have permission
+                event.reply("You don't have permission to do that.").setEphemeral(true).queue();
             break;
                 
             case "clear-messages":
@@ -146,7 +156,6 @@ public class BactaBot extends ListenerAdapter {
                         btnDM = Button.primary("btnDM", "DM").asEnabled();
                         btnShare = Button.success("btnShare", "Share").asEnabled();
                         event.getHook().editOriginal(summary).setActionRow(btnDM, btnShare).queue();
-                        
                     });
                 });
 
@@ -277,9 +286,7 @@ public class BactaBot extends ListenerAdapter {
         } finally {
             System.out.println("DEBUG: \n" + eventToString(event) + "\n");
             try {
-                if(guildMessageList.getCharCountPerChannel(event.getChannel().getId()) > 7000) {
-                    removeMessagesUntilUnderLimit(event, 7000);
-                }
+                removeMessagesUntilUnderLimit(event, charLimit);
             } catch (Exception e) {
                 System.out.println("DEBUG: \n" + e + "\n");
             } finally {

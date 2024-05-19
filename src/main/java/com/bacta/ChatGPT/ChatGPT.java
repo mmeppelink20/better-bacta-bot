@@ -4,6 +4,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Queue;
 
 import org.json.JSONArray;
@@ -27,10 +28,9 @@ public class ChatGPT {
         promptBuilder.append("3. **TL;DR summary:**");
         promptBuilder.append("    - A one-sentence TL;DR summary at the end.");
 
-
         promptBuilder.append("Here is the conversation:\n");
         promptBuilder.append("```\n");
-        promptBuilder.append(escapeSpecialCharactersForJSON(messages.toString()));
+        promptBuilder.append(messages.toString());
         promptBuilder.append("\n```");
 
         String prompt = promptBuilder.toString();
@@ -43,20 +43,21 @@ public class ChatGPT {
 
         return response;
     }
+
     public static String askQuestion(String question, String model) {
         String response = "";
         String prompt = "Answer the following question in under 1000 characters:\n" +
                         "- **Question:**\n" +
-                        "    " + escapeSpecialCharactersForJSON(question) + "\n" +
+                        "    " + question + "\n" +
                         "- **Answer:**\n" +
                         "    Your answer goes here.";
-    
+
         try {
             response = chatGPT(prompt, model);
         } catch (Exception e) {
             response = "There was an error: " + e.toString();
         }
-    
+
         return response;
     }
 
@@ -71,7 +72,7 @@ public class ChatGPT {
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Authorization", "Bearer " + apiKey);
-            con.setRequestProperty("Content-Type", "application/json");
+            con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
 
             // Set the request body
             JSONObject requestBody = new JSONObject();
@@ -88,14 +89,14 @@ public class ChatGPT {
             String body = requestBody.toString();
 
             con.setDoOutput(true);
-            try (OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream())) {
+            try (OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream(), StandardCharsets.UTF_8)) {
                 writer.write(body);
                 writer.flush();
             }
 
             // Get the response
             StringBuilder response = new StringBuilder();
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8))) {
                 String inputLine;
                 while ((inputLine = in.readLine()) != null) {
                     response.append(inputLine);
@@ -126,40 +127,5 @@ public class ChatGPT {
         }
     }
 
-    public static String escapeSpecialCharactersForJSON(String input) {
-        StringBuilder output = new StringBuilder();
-        for (char c : input.toCharArray()) {
-            switch (c) {
-                case '\\':
-                    output.append("\\\\"); // Escape backslash
-                    break;
-                case '\"':
-                    output.append("\\\""); // Escape double quote
-                    break;
-                case '\b':
-                    output.append("\\b"); // Escape backspace
-                    break;
-                case '\f':
-                    output.append("\\f"); // Escape form feed
-                    break;
-                case '\n':
-                    output.append("\\n"); // Escape newline
-                    break;
-                case '\r':
-                    output.append("\\r"); // Escape carriage return
-                    break;
-                case '\t':
-                    output.append("\\t"); // Escape tab
-                    break;
-                default:
-                    if (c < ' ' || (c >= '\u0080' && c <= '\u00ff')) {
-                        output.append("\\u").append(String.format("%04x", (int) c)); // Escape as unicode
-                    } else {
-                        output.append(c); // Leave other characters as is
-                    }
-                    break;
-            }
-        }
-        return output.toString();
-    }
+    
 }
