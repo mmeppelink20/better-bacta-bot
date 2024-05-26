@@ -59,6 +59,7 @@ public class ButtonEventHandler extends ListenerAdapter {
             default:
                 event.reply("I don't know that button.").queue();
             break;
+            
         }
     }
     

@@ -42,7 +42,7 @@ public class BactaBot extends ListenerAdapter {
     private Button btnDM;
     private Button btnShare;
 
-    private int charLimit = 25000;
+    private int charLimit = 10000;
 
 
     // Constructs the bot and sets up the commands
