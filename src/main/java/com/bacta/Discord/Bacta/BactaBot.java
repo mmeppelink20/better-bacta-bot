@@ -32,7 +32,6 @@ public class BactaBot extends ListenerAdapter {
                 .addEventListeners(this, new ButtonEventHandler(), new SlashCommandInteractionEventHandler(guildMessageList), new MessageRecievedEventHandler(guildMessageList, charLimit))
                 .build();
 
-        // Chain the CommandSetup after building the JDA instance
         new CommandSetup(bot).setupCommands();
 
         devIDList.add("197944571844362240");

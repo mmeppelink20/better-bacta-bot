@@ -51,7 +51,7 @@ public class ButtonEventHandler extends ListenerAdapter {
                     // disable btnShare and enable btnDM
                     event.deferEdit().setActionRow(Button.primary("btnDM", "DM"), Button.success("btnShare", "Share").asDisabled()).queue();
                     // send the message to the channel
-                    event.getChannel().sendMessage(event.getMessage().getContentRaw() + "\n\n<@" + event.getUser().getId() + ">" + " requested this.").queue() ;
+                    event.getChannel().sendMessage(event.getMessage().getContentRaw() + "\n\n" + event.getUser().getAsMention() + " requested this.").queue();
                 }
                 System.out.println(event.getUser().getName() + " requested to share the message.");
             break;
