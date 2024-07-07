@@ -84,8 +84,14 @@ public class GuildMessageList  {
         return guildChannelMap;
     }
 
-    // clears the messages in a channel
+    // clears the messages in a channel given a slashcommand interaction
     public void clearMessages(@NotNull SlashCommandInteractionEvent event) {
+        String channelID = event.getChannel().getId();
+        channelMessages.get(channelID).removeAllMessages();
+    }
+
+    // clears the messages in a channel given a message received event
+    public void clearMessages(@NotNull MessageReceivedEvent event) {
         String channelID = event.getChannel().getId();
         channelMessages.get(channelID).removeAllMessages();
     }

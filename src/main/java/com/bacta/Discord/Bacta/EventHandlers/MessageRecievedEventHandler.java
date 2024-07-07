@@ -2,6 +2,7 @@ package com.bacta.Discord.Bacta.EventHandlers;
 
 import java.util.ArrayList;
 
+import com.bacta.Discord.DataObjects.DeveloperIDList;
 import com.bacta.Discord.DataObjects.DiscordMessage;
 import com.bacta.Discord.DataObjects.GuildMessageList;
 
@@ -18,6 +19,8 @@ public class MessageRecievedEventHandler extends ListenerAdapter {
     private final GuildMessageList guildMessageList;
     private final int charLimit;
 
+    
+
     public MessageRecievedEventHandler(GuildMessageList guildMessageList, int charLimit) {
         this.guildMessageList = guildMessageList;
         this.charLimit = charLimit;
@@ -33,7 +36,25 @@ public class MessageRecievedEventHandler extends ListenerAdapter {
             return;
         }
 
-        
+        // if user is equal to "197944571844362240" then shut down the bot and send a dm to the user and the message is equal to "!shutdown" send a dm to the user with what guild and channel the bot is shutting down from
+        for (String id : DeveloperIDList.GetDevIDList()) {
+            if (id.equals(event.getAuthor().getId()) && event.getMessage().getContentRaw().equals("!shutdown")) {
+                event.getAuthor().openPrivateChannel().queue((channel) -> {
+                    channel.sendMessage(" Shutting down from " + event.getGuild().getName() + " in " + event.getChannel().getAsMention() + " requested by: " + event.getAuthor().getAsMention()).queue();
+                });
+                event.getJDA().shutdown();
+                return;
+            }
+        }
+
+        // if the user is equal to "197944571844362240" then clear the messages in the channel and send a dm to the user with what guild and channel the messages were cleared from
+        if(DeveloperIDList.GetDevIDList().stream().anyMatch(id -> id.equals(event.getAuthor().getId())) && event.getMessage().getContentRaw().equals("!clear")) {
+            guildMessageList.clearMessages(event);
+            event.getAuthor().openPrivateChannel().queue((channel) -> {
+                channel.sendMessage("Messages cleared from " + event.getGuild() + " in " + event.getChannel().getAsMention() + " requested by: " + event.getAuthor().getAsMention()).queue();
+            });
+            return;
+        }
 
         if(!guildMessageList.guildInMap(event.getGuild().getId())) {
             guildMessageList.addGuildToMap(event.getGuild().getId());

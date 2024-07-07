@@ -2,6 +2,8 @@ package com.bacta.Discord.Bacta.EventHandlers;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.bacta.Discord.DataObjects.DeveloperIDList;
+
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -14,8 +16,6 @@ public class ButtonEventHandler extends ListenerAdapter {
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
 
         // switch statement to handle the button click event
-        System.out.println(event.getMessage().getButtonById("btnDM").isDisabled());
-
         switch(event.getComponentId()) {
             
             case "btnDM":
@@ -36,7 +36,9 @@ public class ButtonEventHandler extends ListenerAdapter {
                         channel.sendMessage(event.getMessage().getContentRaw()).queue();
                     });
                 }
-                System.out.println(event.getUser().getName() + " requested a DM.");
+
+                // [DEBUG] dm Developer list that someone requested a DM
+                analyticsToDevs(event, "**DM**");
             break;
 
             case "btnShare":
@@ -53,7 +55,9 @@ public class ButtonEventHandler extends ListenerAdapter {
                     // send the message to the channel
                     event.getChannel().sendMessage(event.getMessage().getContentRaw() + "\n\n" + event.getUser().getAsMention() + " requested this.").queue();
                 }
-                System.out.println(event.getUser().getName() + " requested to share the message.");
+
+                // [DEBUG] dm Developer list that someone requested to share the message
+                analyticsToDevs(event, "**share**");
             break;
             
             default:
@@ -63,4 +67,12 @@ public class ButtonEventHandler extends ListenerAdapter {
         }
     }
     
+    private void analyticsToDevs(@NotNull ButtonInteractionEvent event, String type) {
+        // dm all the users in the DeveloperIDList that someone requested to share the message
+        for (String id : DeveloperIDList.GetDevIDList()) {
+            event.getJDA().getUserById(id).openPrivateChannel().queue((channel) -> {
+                channel.sendMessage("User " + event.getUser().getAsMention() + " requested to " + type + " a message: https://discord.com/channels/" + event.getGuild().getId() + "/" + event.getChannel().getId() + "/" + event.getMessageId()).queue();
+            });
+        }
+    }
 }
