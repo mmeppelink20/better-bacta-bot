@@ -29,10 +29,14 @@ public class MessageRecievedEventHandler extends ListenerAdapter {
             return;
         }
 
-        if(event.getGuild() == null) {
+        // check if the event is from a guild
+        if(event.isFromGuild()) {
+            System.out.println("DEBUG: *** Message from guild: " + event.getGuild().getName() + " ***");
+        } else {
+            System.out.println("DEBUG: *** Message from private channel ***" + event.getAuthor().getAsMention() + " ***");
             return;
         }
-
+    
         // if user is equal to "197944571844362240" then shut down the bot and send a dm to the user and the message is equal to "!shutdown" send a dm to the user with what guild and channel the bot is shutting down from
         for (String id : DeveloperIDList.GetDevIDList()) {
             if (id.equals(event.getAuthor().getId()) && event.getMessage().getContentRaw().equals("!shutdown")) {

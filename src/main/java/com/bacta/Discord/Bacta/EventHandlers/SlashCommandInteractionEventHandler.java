@@ -2,13 +2,20 @@ package com.bacta.Discord.Bacta.EventHandlers;
 
 import com.bacta.ChatGPT.ChatGPT;
 import com.bacta.Discord.DataObjects.GuildMessageList;
+import com.bacta.Olympics.Olympics;
+import com.bacta.Olympics.DataObjects.OlympicsNationMedalRecord;
 import com.bacta.Discord.DataObjects.DeveloperIDList;
+
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+
+import java.awt.Color;
 
 public class SlashCommandInteractionEventHandler extends ListenerAdapter {
 
@@ -145,7 +152,31 @@ public class SlashCommandInteractionEventHandler extends ListenerAdapter {
                 System.out.println(n);
                 event.reply(n <= 2 ? "bacta" : "no bacta").queue();
                 break;
+            case "olympics":
+                ArrayList<OlympicsNationMedalRecord> medalLeaderBoard = Olympics.GetMedalLeaderBoard();
+                
+                EmbedBuilder eb = new EmbedBuilder();
+                eb.setThumbnail("https://gstatic.olympics.com/s1/f_auto/static/srm/paris-2024/topic-assets/paris-2024/emblem-oly.svg");
+                eb.setTitle("Olympic Medal Leaderboard");
+                eb.setColor(Color.GREEN);
 
+                boolean containsUS = false;
+                for(int i = 0; i < 5; i++) {
+                    containsUS = medalLeaderBoard.get(i).getCountryName().equals("United States of America") ? true : containsUS;
+                    eb.addField(i + 1 + ". " + medalLeaderBoard.get(i).getCountryName() + " (" + medalLeaderBoard.get(i).getPoints() + ")", ":first_place:" + medalLeaderBoard.get(i).getGold() + "\n:second_place:" + medalLeaderBoard.get(i).getSilver() + "\n:third_place:" + medalLeaderBoard.get(i).getBronze(), false);
+                }
+
+                if(!containsUS) {
+                    eb.addField("...", "", false);
+                    int USIndex = Olympics.findCountryIndex(medalLeaderBoard, "United States of America");
+                    OlympicsNationMedalRecord US = medalLeaderBoard.get(USIndex);
+                    eb.addField(USIndex + 1 + ". " + "United States of America (" + US.getPoints() +")", ":first_place:" + US.getGold() + "\n:second_place:" + US.getSilver() + "\n:third_place:" + US.getBronze() + "\n\n", false);
+                }
+
+
+                event.reply("").addEmbeds(eb.build()).queue();
+                break;
+            
             default:
                 event.reply("I don't know that command.").setEphemeral(true).queue();
                 break;

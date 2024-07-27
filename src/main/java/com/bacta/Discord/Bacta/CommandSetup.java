@@ -15,10 +15,11 @@ public class CommandSetup {
     public JDA setupCommands() {
         OptionData option2 = new OptionData(OptionType.STRING, "question", "The question to ask bacta bot.").setRequired(true);
 
-        bot.upsertCommand("summarize", "summarizes the current conversation").setGuildOnly(true).queue();
-        bot.upsertCommand("ping", "Pong!").setGuildOnly(true).queue();
-        bot.upsertCommand("question", "ask bacta bot a question").addOptions(option2).setGuildOnly(true).queue();
-        bot.upsertCommand("bacta", "bacta, or no bacta...").setGuildOnly(true).queue();
+        bot.upsertCommand("summarize", "summarizes the current conversation").queue();
+        bot.upsertCommand("ping", "Pong!").queue();
+        bot.upsertCommand("question", "ask bacta bot a question").addOptions(option2).queue();
+        bot.upsertCommand("bacta", "bacta, or no bacta...").queue();
+        bot.upsertCommand("olympics", "Olypmics gold medal leaderboard").queue();
 
         // print the name and IDS of all the commands
         bot.retrieveCommands().queue((commands) -> {
@@ -27,11 +28,10 @@ public class CommandSetup {
             });
         });
 
-        // bot.deleteCommandById("1257756950498639892").queue();
-        // bot.deleteCommandById("1257757025975144481").queue();
-        // bot.deleteCommandById("1257757028085010466").queue();
-        // bot.deleteCommandById("1162531134937256028").queue();
-        // bot.deleteCommandById("1225991886549024799").queue();
+        // bot.deleteCommandById("1266755438230110389").queue();
+        // bot.deleteCommandById("1240858500007985222").queue();
+        // bot.deleteCommandById("1240858583432822824").queue();
+        // bot.deleteCommandById("1240858588130443386").queue();
 
         return bot;
     }
