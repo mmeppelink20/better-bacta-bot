@@ -6,11 +6,8 @@ import com.bacta.Discord.DataObjects.DeveloperIDList;
 import com.bacta.Discord.DataObjects.DiscordMessage;
 import com.bacta.Discord.DataObjects.GuildMessageList;
 
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.Channel;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 

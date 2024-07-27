@@ -3,13 +3,10 @@ package com.bacta.Discord.Bacta.EventHandlers;
 import com.bacta.ChatGPT.ChatGPT;
 import com.bacta.Discord.DataObjects.GuildMessageList;
 import com.bacta.Discord.DataObjects.DeveloperIDList;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
