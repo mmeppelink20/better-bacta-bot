@@ -4,7 +4,7 @@ import com.bacta.ChatGPT.ChatGPT;
 import com.bacta.Discord.DataObjects.GuildMessageList;
 import com.bacta.Olympics.Olympics;
 import com.bacta.Olympics.DataObjects.OlympicsNationMedalRecord;
-import com.bacta.Discord.DataObjects.DeveloperIDList;
+import com.bacta.Discord.DataObjects.BactaData;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -80,7 +80,7 @@ public class SlashCommandInteractionEventHandler extends ListenerAdapter {
                         event.getHook().editOriginal(summary).setActionRow(btnDM, btnShare).queue();
 
                         // dm users on the DevIDList the summary and who requested it
-                        DeveloperIDList.GetDevIDList().forEach(devID -> {
+                        BactaData.GetDevIDList().forEach(devID -> {
                             event.getJDA().retrieveUserById(devID).queue(user -> {
                                 user.openPrivateChannel().queue(channel -> {
                                     // end the timer here
@@ -123,7 +123,7 @@ public class SlashCommandInteractionEventHandler extends ListenerAdapter {
                         event.getHook().editOriginal(answer).setActionRow(btnDM, btnShare).queue();
 
                         // dm users on the DevIDList the summary and who requested it
-                        DeveloperIDList.GetDevIDList().forEach(devID -> {
+                        BactaData.GetDevIDList().forEach(devID -> {
                             event.getJDA().retrieveUserById(devID).queue(user -> {
                                 user.openPrivateChannel().queue(channel -> {
                                     // end the timer here
@@ -141,11 +141,6 @@ public class SlashCommandInteractionEventHandler extends ListenerAdapter {
                     });
                 });
                 break;
-
-            // case "vanish":
-            //     // Handle vanish command here
-            //     break;
-
             case "bacta":
                 Random rand = new Random();
                 int n = rand.nextInt(10);
@@ -163,18 +158,30 @@ public class SlashCommandInteractionEventHandler extends ListenerAdapter {
                 boolean containsUS = false;
                 for(int i = 0; i < 5; i++) {
                     containsUS = medalLeaderBoard.get(i).getCountryName().equals("United States of America") ? true : containsUS;
-                    eb.addField(i + 1 + ". " + medalLeaderBoard.get(i).getCountryName() + " (" + medalLeaderBoard.get(i).getPoints() + ")", ":first_place:" + medalLeaderBoard.get(i).getGold() + "\n:second_place:" + medalLeaderBoard.get(i).getSilver() + "\n:third_place:" + medalLeaderBoard.get(i).getBronze(), false);
+
+                    eb.addField(i + 1 + ". "
+                        + medalLeaderBoard.get(i).getCountryName()
+                        + " (" + medalLeaderBoard.get(i).getPoints()
+                        + ")", ":first_place:" + medalLeaderBoard.get(i).getGold()
+                        + "\n:second_place:" + medalLeaderBoard.get(i).getSilver()
+                        + "\n:third_place:" + medalLeaderBoard.get(i).getBronze(), false);
                 }
 
                 if(!containsUS) {
                     eb.addField("...", "", false);
                     int USIndex = Olympics.findCountryIndex(medalLeaderBoard, "United States of America");
                     OlympicsNationMedalRecord US = medalLeaderBoard.get(USIndex);
-                    eb.addField(USIndex + 1 + ". " + "United States of America (" + US.getPoints() +")", ":first_place:" + US.getGold() + "\n:second_place:" + US.getSilver() + "\n:third_place:" + US.getBronze() + "\n\n", false);
+                    eb.addField(USIndex + 1 + ". "
+                     + "United States of America ("
+                     + US.getPoints() +")", ":first_place:"
+                     + US.getGold() + "\n:second_place:"
+                     + US.getSilver() + "\n:third_place:"
+                     + US.getBronze() + "\n\n", false);
                 }
 
-
+                eb.setFooter("https://olympics.com/en/paris-2024/medals");
                 event.reply("").addEmbeds(eb.build()).queue();
+
                 break;
             
             default:

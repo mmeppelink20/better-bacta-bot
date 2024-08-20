@@ -2,7 +2,7 @@ package com.bacta.Discord.Bacta.EventHandlers;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.bacta.Discord.DataObjects.DeveloperIDList;
+import com.bacta.Discord.DataObjects.BactaData;
 
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -69,7 +69,7 @@ public class ButtonEventHandler extends ListenerAdapter {
     
     private void analyticsToDevs(@NotNull ButtonInteractionEvent event, String type) {
         // dm all the users in the DeveloperIDList that someone requested to share the message
-        for (String id : DeveloperIDList.GetDevIDList()) {
+        for (String id : BactaData.GetDevIDList()) {
             event.getJDA().getUserById(id).openPrivateChannel().queue((channel) -> {
                 channel.sendMessage("User " + event.getUser().getAsMention() + " requested to " + type + " a message: https://discord.com/channels/" + event.getGuild().getId() + "/" + event.getChannel().getId() + "/" + event.getMessageId()).queue();
             });

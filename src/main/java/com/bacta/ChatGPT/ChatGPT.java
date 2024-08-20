@@ -61,6 +61,24 @@ public class ChatGPT {
         return response;
     }
 
+    public static String askQuestionAboutConversation(String question, Queue<DiscordMessage> queue, String model) {
+        String response = "";
+        String prompt = "You are Bacta Bot, a friendly and conversational bot in a Discord server. Respond to the following question or statement based on the conversation below (if there is one). Remember, any message referencing Bacta Bot is about you. Your response should be in a casual, friendly tone. Prioritize clarity, and keep your answer concise—ideally, one sentence or a brief paragraph, don't try to @ anyone just respond to them by their name/no need to address the question asker this is taken care of, and under 1000 characters:\n\n" +
+                        "Question:\n" +
+                        question + "\n\n" +
+                        "Conversation:\n" +
+                        queue.toString() + "\n\n" +
+                        "If you are unsure how to respond, provide a simple acknowledgment or ask for clarification.";
+    
+        try {
+            response = chatGPT(prompt, model);
+        } catch (Exception e) {
+            response = "There was an error: " + e.toString();
+        }
+    
+        return response;
+    }
+
     public static String chatGPT(String message, String model) {
         String url = "https://api.openai.com/v1/chat/completions";
         Dotenv dotenv = Dotenv.load();
@@ -114,16 +132,20 @@ public class ChatGPT {
 
         } catch (MalformedURLException e) {
             e.printStackTrace();
-            return "MalformedURLException: " + e.getMessage();
+            System.out.println("MalformedURLException: " + e.getMessage());
+            return "There was an error with the request. Please try again later.";
         } catch (ProtocolException e) {
             e.printStackTrace();
-            return "ProtocolException: " + e.getMessage();
+            System.out.println("ProtocolException: " + e.getMessage());
+            return "There was an error with the request. Please try again later.";
         } catch (IOException e) {
             e.printStackTrace();
-            return "IOException: " + e.getMessage();
+            System.out.println("IOException: " + e.getMessage());
+            return "There was an error with the request. Please try again later.";
         } catch (Exception e) {
             e.printStackTrace();
-            return "Exception: " + e.getMessage();
+            System.out.println("Exception: " + e.getMessage());
+            return "There was an error with the request. Please try again later.";
         }
     }
 

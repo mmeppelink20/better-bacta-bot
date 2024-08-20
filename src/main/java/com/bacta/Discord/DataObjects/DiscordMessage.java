@@ -12,12 +12,20 @@ import net.dv8tion.jda.api.entities.channel.Channel;
 
 public class DiscordMessage {
     private String userName;
+    private String userID;
     private String message;
     private String messageTime;
     private Guild guild;
     private Channel channel;
 
     public final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd HH:mm:ss");
+
+    // default constructor
+    public DiscordMessage(){
+        this.userName = "";
+        this.message = "";
+        this.messageTime = "";
+    }
 
     public DiscordMessage(String message) {
         this.message = message;
@@ -45,6 +53,10 @@ public class DiscordMessage {
 
     public Guild getGuild() {
         return guild;
+    }
+
+    public String getUserID() {
+        return userID;
     }
 
     public Channel getChannel() {

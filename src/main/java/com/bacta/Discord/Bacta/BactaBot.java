@@ -18,7 +18,7 @@ public class BactaBot extends ListenerAdapter {
 
     private GuildMessageList guildMessageList = new GuildMessageList();
     private ArrayList<String> devIDList = new ArrayList<>();
-    private int charLimit = 10000;
+    private int charLimit = 5000;
 
     // Constructs the bot and sets up the commands
     BactaBot() { 

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import com.bacta.Olympics.DataObjects.OlympicsNationMedalRecord;
-import com.bacta.Olympics.DataObjects.OlympicsNationMedalRecord;
 
 public class Olympics {
 
@@ -27,7 +26,7 @@ public class Olympics {
   public static ArrayList<OlympicsNationMedalRecord> GetMedalLeaderBoard() {
     ArrayList<OlympicsNationMedalRecord> medalLeaderBoard = new ArrayList<OlympicsNationMedalRecord>();
 
-    String url = "https://olympics.com/en/paris-2024/medals?utm_campaign=dp_google";
+    String url = "https://olympics.com/en/paris-2024/medals";
 
       try {
         Document doc = Jsoup.connect(url).get();
@@ -41,7 +40,6 @@ public class Olympics {
             if (!nameElements.isEmpty()) {
                 String name = nameElements.text();
                 String flagUrl = countryElement.select("img.elhe7kv3").attr("src"); // Access the image source
-
                 Elements medals = countryElement.select("span.e1oix8v91.emotion-srm-81g9w1");
                 if (medals.size() >= 3) { // Check if there are at least 3 medals
                   OlympicsNationMedalRecord olympicRecord = 

@@ -1,8 +1,10 @@
 package com.bacta.Discord.Bacta.EventHandlers;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
-import com.bacta.Discord.DataObjects.DeveloperIDList;
+import com.bacta.ChatGPT.ChatGPT;
+import com.bacta.Discord.DataObjects.BactaData;
 import com.bacta.Discord.DataObjects.DiscordMessage;
 import com.bacta.Discord.DataObjects.GuildMessageList;
 
@@ -25,6 +27,7 @@ public class MessageRecievedEventHandler extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+        // check if the message is from a bot
         if(event.getAuthor().isBot()) {
             return;
         }
@@ -38,7 +41,7 @@ public class MessageRecievedEventHandler extends ListenerAdapter {
         }
     
         // if user is equal to "197944571844362240" then shut down the bot and send a dm to the user and the message is equal to "!shutdown" send a dm to the user with what guild and channel the bot is shutting down from
-        for (String id : DeveloperIDList.GetDevIDList()) {
+        for (String id : BactaData.GetDevIDList()) {
             if (id.equals(event.getAuthor().getId()) && event.getMessage().getContentRaw().equals("!shutdown")) {
                 event.getAuthor().openPrivateChannel().queue((channel) -> {
                     channel.sendMessage(" Shutting down from " + event.getGuild().getName() + " in " + event.getChannel().getAsMention() + " requested by: " + event.getAuthor().getAsMention()).queue();
@@ -49,7 +52,7 @@ public class MessageRecievedEventHandler extends ListenerAdapter {
         }
 
         // if the user is equal to "197944571844362240" then clear the messages in the channel and send a dm to the user with what guild and channel the messages were cleared from
-        if(DeveloperIDList.GetDevIDList().stream().anyMatch(id -> id.equals(event.getAuthor().getId())) && event.getMessage().getContentRaw().equals("!clear")) {
+        if(BactaData.GetDevIDList().stream().anyMatch(id -> id.equals(event.getAuthor().getId())) && event.getMessage().getContentRaw().equals("!clear")) {
             guildMessageList.clearMessages(event);
             event.getAuthor().openPrivateChannel().queue((channel) -> {
                 channel.sendMessage("Messages cleared from " + event.getGuild() + " in " + event.getChannel().getAsMention() + " requested by: " + event.getAuthor().getAsMention()).queue();
@@ -57,21 +60,26 @@ public class MessageRecievedEventHandler extends ListenerAdapter {
             return;
         }
 
+        // if the guild is not in the map, add it
         if(!guildMessageList.guildInMap(event.getGuild().getId())) {
             guildMessageList.addGuildToMap(event.getGuild().getId());
             System.out.println("DEBUG: *** Added guild to map: " + event.getGuild().getId() + " ***");
         }
 
+        // if the channel is not in the guild's channel map, add it
         if(!guildMessageList.getGuildChannelMap().get(event.getGuild().getId()).contains(event.getChannel().getId())) {
             guildMessageList.addChannelToGuild(event.getGuild().getId(), event.getChannel().getId());
             System.out.println("DEBUG: *** Added channel to guild: " + event.getChannel().getId() + " ***");
         }
 
+        // if the channel is not in the channel map, add it
         if(!guildMessageList.channelInMap(event.getChannel().getId())) {
             guildMessageList.addChannelToMap(event.getChannel().getId());
             System.out.println("DEBUG: *** Added channel to guild channel map: " + event.getChannel().getId() + " ***");
         }
 
+        
+        // create a new DiscordMessage object with the message
         try {
             DiscordMessage message = new DiscordMessage(
                     event.getAuthor().getName(),
@@ -93,13 +101,45 @@ public class MessageRecievedEventHandler extends ListenerAdapter {
         } finally {
             System.out.println("DEBUG: \n" + eventToString(event) + "\n");
             try {
+                // remove messages until the char count is under the limit
                 removeMessagesUntilUnderLimit(event, charLimit);
             } catch (Exception e) {
                 System.out.println("DEBUG: \n" + e + "\n");
-            } finally {
-                System.out.println("DEBUG: \n" + guildMessageList.getCharCountPerChannel(event.getChannel().getId()) + "\n");
             }
         }
+
+        // if the message contains the bot's mention, or a message that is a reply to the bot, then ask a question about the conversation
+        if (event.getMessage().getContentRaw().contains(BactaData.GetBotAsMention()) ||
+            Optional.ofNullable(event.getMessage().getReferencedMessage())
+            .map(refMsg -> refMsg.getAuthor().getAsMention().equals(BactaData.GetBotAsMention()))
+            .orElse(false)) {
+
+
+            // get the response from the GPT model
+
+            String response = ChatGPT.askQuestionAboutConversation(event.getMessage().getContentRaw(), guildMessageList.getMessagesInChannel(event.getChannel().getId()), BactaData.getAskQuestionAboutConversationGPTModel());
+
+            // create a new DiscordMessage object with the response
+            DiscordMessage responseMessage = new DiscordMessage();
+            try{
+                responseMessage = new DiscordMessage(
+                    event.getAuthor().getName(),
+                    response,
+                    event.getMessage().getTimeCreated().toInstant(),
+                    event.getGuild(),
+                    event.getChannel()
+                );
+            } catch (Exception e) {
+                System.out.println("\n\nError adding message to queue\n\n" + e);
+            }
+
+            // add the response to the message queue
+            guildMessageList.addMessageToChannel(event.getChannel().getId(), responseMessage);
+
+            // send the response as a reply to the message
+            event.getMessage().reply(response).queue();
+        }
+
     }
 
     private ArrayList<DiscordMessage> splitMessage(MessageReceivedEvent event) {
