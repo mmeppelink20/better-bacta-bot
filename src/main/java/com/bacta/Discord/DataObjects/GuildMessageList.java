@@ -54,8 +54,8 @@ public class GuildMessageList  {
         channelMessages.get(channelID).addMessageToChannel(message);
 
         // print the queue; for debugging.
-        System.out.println("DEBUG:");
-        System.out.println("*** ADDED MESSAGE TO THE QUEUE ***: ");
+        // System.out.println("DEBUG:");
+        // System.out.println("*** ADDED MESSAGE TO THE QUEUE ***: ");
         // channelMessages.get(channelID).getChannelMessages().forEach(msg -> System.out.println(msg));
     }
 

@@ -33,9 +33,7 @@ public class MessageRecievedEventHandler extends ListenerAdapter {
         }
 
         // check if the event is from a guild
-        if(event.isFromGuild()) {
-            System.out.println("DEBUG: *** Message from guild: " + event.getGuild().getName() + " ***");
-        } else {
+        if(!event.isFromGuild()) {
             System.out.println("DEBUG: *** Message from private channel ***" + event.getAuthor().getAsMention() + " ***");
             return;
         }
@@ -99,13 +97,15 @@ public class MessageRecievedEventHandler extends ListenerAdapter {
         } catch (Exception e) {
             System.out.println("\n\nError adding message to queue\n\n" + e);
         } finally {
-            System.out.println("DEBUG: \n" + eventToString(event) + "\n");
             try {
                 // remove messages until the char count is under the limit
                 removeMessagesUntilUnderLimit(event, charLimit);
             } catch (Exception e) {
                 System.out.println("DEBUG: \n" + e + "\n");
             }
+
+            System.out.println("DEBUG: \n" + eventToString(event) + "\n");
+            
         }
 
         // if the message contains the bot's mention, or a message that is a reply to the bot, then ask a question about the conversation

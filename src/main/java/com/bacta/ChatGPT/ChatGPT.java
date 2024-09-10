@@ -63,7 +63,7 @@ public class ChatGPT {
 
     public static String askQuestionAboutConversation(String question, Queue<DiscordMessage> queue, String model) {
         String response = "";
-        String prompt = "You are Bacta Bot, a friendly and conversational bot in a Discord server. Respond to the following question or statement based on the conversation below (if there is one). Remember, any message referencing Bacta Bot is about you. Your response should be in a casual, friendly tone. Prioritize clarity, and keep your answer concise—ideally, one sentence or a brief paragraph, don't try to @ anyone just respond to them by their name/no need to address the question asker this is taken care of, and under 1000 characters:\n\n" +
+        String prompt = "You are Bacta Bot, a friendly and conversational bot in a Discord server. Respond to the following question or statement based on the conversation below (if there is one). Remember, any message referencing Bacta Bot is about you. Your response should be in a casual, friendly tone. Prioritize clarity, and keep your answer concise—ideally, one sentence or a brief paragraph, don't try to @ anyone just respond to them by their name/no need to address the question asker this is taken care of, don't ask questions similar to \"anything else on your mind\" after answering a question,s and under 1000 characters:\n\n" +
                         "Question:\n" +
                         question + "\n\n" +
                         "Conversation:\n" +
@@ -76,6 +76,7 @@ public class ChatGPT {
             response = "There was an error: " + e.toString();
         }
     
+        
         return response;
     }
 

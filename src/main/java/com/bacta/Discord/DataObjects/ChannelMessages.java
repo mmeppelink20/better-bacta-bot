@@ -23,7 +23,6 @@ public class ChannelMessages {
     public void addMessageToChannel(DiscordMessage message) {
         channelMessages.add(message);
         // add the message's length to the char count
-        System.out.println(message.toString());
         addCharsToCharCount(message.toString().length());
     }
 

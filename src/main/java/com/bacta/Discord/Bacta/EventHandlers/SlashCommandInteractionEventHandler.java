@@ -148,39 +148,43 @@ public class SlashCommandInteractionEventHandler extends ListenerAdapter {
                 event.reply(n <= 2 ? "bacta" : "no bacta").queue();
                 break;
             case "olympics":
-                ArrayList<OlympicsNationMedalRecord> medalLeaderBoard = Olympics.GetMedalLeaderBoard();
+                try {
+                    ArrayList<OlympicsNationMedalRecord> medalLeaderBoard = Olympics.GetMedalLeaderBoard();
+                    
+                    EmbedBuilder eb = new EmbedBuilder();
+                    eb.setThumbnail("https://gstatic.olympics.com/s1/f_auto/static/srm/paris-2024/topic-assets/paris-2024/emblem-oly.svg");
+                    eb.setTitle("Olympic Medal Leaderboard");
+                    eb.setColor(Color.GREEN);
                 
-                EmbedBuilder eb = new EmbedBuilder();
-                eb.setThumbnail("https://gstatic.olympics.com/s1/f_auto/static/srm/paris-2024/topic-assets/paris-2024/emblem-oly.svg");
-                eb.setTitle("Olympic Medal Leaderboard");
-                eb.setColor(Color.GREEN);
-
-                boolean containsUS = false;
-                for(int i = 0; i < 5; i++) {
-                    containsUS = medalLeaderBoard.get(i).getCountryName().equals("United States of America") ? true : containsUS;
-
-                    eb.addField(i + 1 + ". "
-                        + medalLeaderBoard.get(i).getCountryName()
-                        + " (" + medalLeaderBoard.get(i).getPoints()
-                        + ")", ":first_place:" + medalLeaderBoard.get(i).getGold()
-                        + "\n:second_place:" + medalLeaderBoard.get(i).getSilver()
-                        + "\n:third_place:" + medalLeaderBoard.get(i).getBronze(), false);
+                    boolean containsUS = false;
+                    for(int i = 0; i < 5; i++) {
+                        containsUS = medalLeaderBoard.get(i).getCountryName().equals("United States of America") ? true : containsUS;
+                    
+                        eb.addField(i + 1 + ". "
+                            + medalLeaderBoard.get(i).getCountryName()
+                            + " (" + medalLeaderBoard.get(i).getPoints()
+                            + ")", ":first_place:" + medalLeaderBoard.get(i).getGold()
+                            + "\n:second_place:" + medalLeaderBoard.get(i).getSilver()
+                            + "\n:third_place:" + medalLeaderBoard.get(i).getBronze(), false);
+                    }
+                
+                    if(!containsUS) {
+                        eb.addField("...", "", false);
+                        int USIndex = Olympics.findCountryIndex(medalLeaderBoard, "United States of America");
+                        OlympicsNationMedalRecord US = medalLeaderBoard.get(USIndex);
+                        eb.addField(USIndex + 1 + ". "
+                         + "United States of America ("
+                         + US.getPoints() +")", ":first_place:"
+                         + US.getGold() + "\n:second_place:"
+                         + US.getSilver() + "\n:third_place:"
+                         + US.getBronze() + "\n\n", false);
+                    }
+                
+                    eb.setFooter("https://olympics.com/en/paris-2024/medals");
+                    event.reply("").addEmbeds(eb.build()).queue();
+                } catch (Exception e) {
+                    event.reply("There was an error retrieving the Olympic Medal Leaderboard. Please try again later.").setEphemeral(true).queue();
                 }
-
-                if(!containsUS) {
-                    eb.addField("...", "", false);
-                    int USIndex = Olympics.findCountryIndex(medalLeaderBoard, "United States of America");
-                    OlympicsNationMedalRecord US = medalLeaderBoard.get(USIndex);
-                    eb.addField(USIndex + 1 + ". "
-                     + "United States of America ("
-                     + US.getPoints() +")", ":first_place:"
-                     + US.getGold() + "\n:second_place:"
-                     + US.getSilver() + "\n:third_place:"
-                     + US.getBronze() + "\n\n", false);
-                }
-
-                eb.setFooter("https://olympics.com/en/paris-2024/medals");
-                event.reply("").addEmbeds(eb.build()).queue();
 
                 break;
             
